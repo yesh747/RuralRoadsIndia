@@ -1,0 +1,248 @@
+---
+title: "Econ Thesis Data Sandbox"
+author: "Yeshwant Chillakuru"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(bit)
+library(bit64)
+library(rio)
+library(ggplot2)
+library(plyr)
+library(foreign)
+```
+
+## Load Data
+```{r loadData}
+
+## Load medical data
+MD2005 <- import("/Users/Yesh/Google Drive/GW/Undegraduate/GW 2016-2017/2017 Spring/Proseminar in Econ/Data/IHDS_Medical_2005/DS0003/22626-0003-Data.tsv")
+
+load("/Users/Yesh/Google Drive/GW/Undegraduate/GW 2016-2017/2017 Spring/Proseminar in Econ/Data/IHDS_Medical Facilities_2011-2012/DS0006/36151-0006-Data.rda")
+MDFAC2012 <- da36151.0006
+rm("da36151.0006")
+
+load("/Users/Yesh/Google Drive/GW/Undegraduate/GW 2016-2017/2017 Spring/Proseminar in Econ/Data/IHDS_Medical Staff_2011-2012/DS0005/36151-0005-Data.rda")
+MDSTAFF2012 <- da36151.0005
+rm("da36151.0005")
+
+## load household data
+load("/Users/Yesh/Google Drive/GW/Undegraduate/GW 2016-2017/2017 Spring/Proseminar in Econ/Data/IHDS_Households_2011-2012/DS0002/36151-0002-Data.rda")
+HH2012 <- da36151.0002
+rm("da36151.0002")
+
+HH2005 <- load("/Users/Yesh/Google Drive/GW/Undegraduate/GW 2016-2017/2017 Spring/Proseminar in Econ/Data/IHDS_Households_2005/DS0002/22626-0002-Data.rda")
+HH2005 <- da22626.0002
+rm("da22626.0002")
+
+
+## Load individual data
+load("/Users/Yesh/Google Drive/GW/Undegraduate/GW 2016-2017/2017 Spring/Proseminar in Econ/Data/IHDS_Individuals_2011-2012/DS0001/36151-0001-Data.rda")
+IND2012 <- da36151.0001
+rm("da36151.0001")
+
+IND2005 <- import("/Users/Yesh/Google Drive/GW/Undegraduate/GW 2016-2017/2017 Spring/Proseminar in Econ/Data/IHDS_Individuals_2005/DS0001/22626-0001-Data.tsv")
+
+
+## Load village level data
+load("/Users/Yesh/Google Drive/GW/Undegraduate/GW 2016-2017/2017 Spring/Proseminar in Econ/Data/IHDS_Village_2011-2012/DS0012/36151-0012-Data.rda")
+VIL2012 <- da36151.0012
+rm("da36151.0012")
+
+VIL2005 <- import("/Users/Yesh/Google Drive/GW/Undegraduate/GW 2016-2017/2017 Spring/Proseminar in Econ/Data/IHDS_Village_2005/DS0007/22626-0007-Data.tsv")
+
+
+```
+
+
+# Getting to know the data
+```{r Getting to know data}
+dim(HH2005)
+dim(HH2012)
+count(HH2005$URBAN)
+count(HH2012$URBAN2011)
+```
+
+## healthcare quality
+```{r healthcare}
+## healthcare
+head(HH2005[,558:570])
+head(HH2012[,647:657])
+
+summary(HH2005[,558:570])
+summary(HH2012[,647:657])
+
+which(colnames(IND2005) == "mb15")
+summary(IND2005[158:175])
+count(IND2005[172])
+
+which(colnames(IND2012) == "MB15")
+count(IND2012[184])
+
+MD2005[grep(as.integer("1020101"), rownames(MD2005$idclinic)),]
+
+MD2005[which(MD2005$idclinic == 1020101),]
+
+count(IND2005$dist01) 
+```
+
+
+
+## Village Infrastructure and Road Data
+```{r infrastructure}
+infStart2005 <- which(colnames(VIL2005) == "vi1b")
+infEnd2005 <- which(colnames(VIL2005) == "vi16")
+
+head(VIL2005[infStart2005:infEnd2005])
+
+infStart2012 <- which(colnames(VIL2012) == "VI1B")
+infEnd2012 <- which(colnames(VIL2012) == "VI20")
+
+head(VIL2012[infStart2012:infEnd2012])
+
+count(VIL2012$VI3)
+count(VIL2005$vi3a)
+```
+
+
+## Individual Health and Control Data
+```{r health and controsl}
+
+controlStart2005 <- which(colnames(IND2005) == "ID11")
+controlEnd2005 <- which(colnames(IND2005) == "ID13")
+head(IND2005[controlStart2005:controlEnd2005])
+
+
+controlStart2012 <- which(colnames(IND2012) == "ID11")
+controlEnd2012 <- which(colnames(IND2012) == "ID13")
+
+head(IND2012[controlStart2012:controlEnd2012])
+
+HH2012$ID14
+
+HH2012$FM14A
+
+summary(HH2012$NF3)
+
+colnames(HH2005)
+
+```
+
+
+
+
+
+
+
+
+
+# Creating new dataframe from raw survey datasets
+
+## 1. Add village road data
+```{r}
+
+# 1. Create two seperate dataframe for 2005 and 2012. Will merge at the end using rbind.
+
+vilID2005start <- which(colnames(VIL2005) == "stateid")
+vilID2005end <- which(colnames(VIL2005) == "psuid")
+
+df2005 <- VIL2005[, vilID2005start:vilID2005end]
+df2005$year <- 2005
+
+vilID2012start <- which(colnames(VIL2012) == "STATEID")
+vilID2012end <- which(colnames(VIL2012) == "PSUID")
+
+df2012 <- VIL2012[, vilID2012start:vilID2012end]
+df2012$year <- 2012
+
+rm(vilID2005end, vilID2005start, vilID2012end, vilID2012start)
+
+  ## Create id for village level data
+df2005$id <- paste(df2005$stateid, df2005$distid, df2005$psuid, sep=".")
+VIL2005$id <- paste(VIL2005$stateid, VIL2005$distid, VIL2005$psuid, sep=".")
+
+df2012$id <- paste(df2012$STATEID, df2012$DISTID, df2012$PSUID, sep=".")
+VIL2012$id <- paste(VIL2012$STATEID, VIL2012$DISTID, VIL2012$PSUID, sep=".")
+
+# 2. Add village road data
+df2005 <- merge(df2005, VIL2005[, c("id", "vi3a", "vi3b", "vi3c", "vi3d")], by = "id")
+
+df2005 <- rename(df2005, c("vi3a"="roadType", "vi3b"="distanceToPavedRoad", "vi3c"="roadMonsoonUsability", "vi3d" = "yearsWithPavedRoad"))
+
+df2012 <- merge(df2012, VIL2012[, c("id", "VI3", "VI3A", "VI3B", "VI3C")], by = "id")
+
+df2012 <- rename(df2012, c("VI3"="roadType", "VI3A"="distanceToPavedRoad", "VI3B"="roadMonsoonUsability", "VI3C"="yearsWithPavedRoad"))
+
+
+## TO DO add in Village Population, Village Household, Village Area (hectacres
+```
+
+## 2. Add village control data
+```{r villageControl Data}
+
+# Create variables with mean daily agriculture and non-agricultural wage for men, women, and children (<15 years old).
+
+  ## 2005
+
+VIL2005$wageDailyCasualAgriculturalWorkerMen <- rowMeans(VIL2005[,c("ve1a", "ve1d", "ve2a", "ve2d", "ve3a", "ve3d")], na.rm = FALSE, dims = 1)
+
+VIL2005$wageDailyCasualAgriculturalWorkerWomen <- rowMeans(VIL2005[,c("ve1b", "ve1e", "ve2b", "ve2e", "ve3b", "ve3e")], na.rm = FALSE, dims = 1)
+
+VIL2005$wageDailyCasualAgriculturalWorkerChildren <- rowMeans(VIL2005[,c("ve1c", "ve1f", "ve2c", "ve2f", "ve3c", "ve3f")], na.rm = FALSE, dims = 1)
+
+VIL2005$wageDailyNonAgriculturalWorkerMen <- rowMeans(VIL2005[,c("ve4c", "ve5c", "ve6c")], na.rm = FALSE, dims = 1)
+
+VIL2005$wageDailyNonAgriculturalWorkerWomen <- rowMeans(VIL2005[,c("ve4d", "ve5d", "ve6d")], na.rm = FALSE, dims = 1)
+
+VIL2005$wageDailyNonAgriculturalWorkerChildren <- rowMeans(VIL2005[,c("ve4e", "ve5e", "ve6e")], na.rm = FALSE, dims = 1)
+
+df2005 <- merge(df2005, VIL2005[, c("id", "vi4a", "vi4c", "vi16", "vi1b", "vi2b", "area", "popcat","tothh", "wageDailyCasualAgriculturalWorkerMen", "wageDailyCasualAgriculturalWorkerWomen", "wageDailyCasualAgriculturalWorkerChildren", "wageDailyNonAgriculturalWorkerMen", "wageDailyNonAgriculturalWorkerWomen", "wageDailyNonAgriculturalWorkerChildren")])
+
+df2005 <- rename(df2005, c("vi4a"="electrictyPercentOfVillage", "vi4c"="electricityHoursPerDay", "vi16"="ImmunizationCampaignsNumber", "vi1b"="distanceToNearestTown", "vi2b"="distanceToNearestDistrictHQ", "popcat" = "PopulationCategories", "tothh"="HouseholdNumbersOf", "area" = "areaInHectacres"))
+
+
+  ## 2012
+
+VIL2012$wageDailyCasualAgriculturalWorkerMen <- rowMeans(VIL2012[,c("VE1A", "VE1D", "VE2A", "VE2D", "VE3A", "VE3D")], na.rm = FALSE, dims = 1)
+
+VIL2012$wageDailyCasualAgriculturalWorkerWomen <- rowMeans(VIL2012[,c("VE1B", "VE1E", "VE2B", "VE2E", "VE3B", "VE3E")], na.rm = FALSE, dims = 1)
+
+VIL2012$wageDailyCasualAgriculturalWorkerChildren <- rowMeans(VIL2012[,c("VE1C", "VE1F", "VE2C", "VE2F", "VE3C", "VE3F")], na.rm = FALSE, dims = 1)
+
+VIL2012$wageDailyNonAgriculturalWorkerMen <- rowMeans(VIL2012[,c("VE4A", "VE5A", "VE6A")], na.rm = FALSE, dims = 1)
+
+VIL2012$wageDailyNonAgriculturalWorkerWomen <- rowMeans(VIL2012[,c("VE4B", "VE5B", "VE6B")], na.rm = FALSE, dims = 1)
+
+VIL2012$wageDailyNonAgriculturalWorkerChildren <- rowMeans(VIL2012[,c("VE4C", "VE5C", "VE6C")], na.rm = FALSE, dims = 1)
+
+VIL2012$area = ""
+VIL2012$popcat = ""
+VIL2012$tothh = ""
+
+df2012 <- merge(df2012, VIL2012[, c("id", "VI4A", "VI4D", "VI20", "VI1B", "VI2B", "area", "popcat","tothh", "wageDailyCasualAgriculturalWorkerMen", "wageDailyCasualAgriculturalWorkerWomen", "wageDailyCasualAgriculturalWorkerChildren", "wageDailyNonAgriculturalWorkerMen", "wageDailyNonAgriculturalWorkerWomen", "wageDailyNonAgriculturalWorkerChildren")])
+
+df2012 <- rename(df2012, c("VI4A"="electrictyPercentOfVillage", "VI4D"="electricityHoursPerDay", "VI20"="ImmunizationCampaignsNumber", "VI1B"="distanceToNearestTown", "VI2B"="distanceToNearestDistrictHQ", "popcat" = "PopulationCategories", "tothh"="HouseholdNumbersOf", "area" = "areaInHectacres"))
+```
+
+## 3. Add in Individual Health Data
+```{r individualHealthData}
+
+# Create id for IND2005 and IND2012
+
+IND2005$id <- paste(IND2005$stateid, IND2005$distid, IND2005$psuid, sep=".")
+IND2012$id <- paste(IND2012$STATEID, IND2012$DISTID, IND2012$PSUID, sep=".")
+
+# Average Individual Short Term Morbidity for each village
+
+```
+
+
+
+
+# NOTES
+
+ * Have not added public programs controls from village control data
+ * Have not added medical facilities controls for village control data
+ * Area, Population, and num of HH is missing from 2012 village data

@@ -1,0 +1,557 @@
+---
+title: "Econ Thesis Data Cleaning"
+author: "Yeshwant Chillakuru"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(bit)
+library(bit64)
+library(rio)
+library(ggplot2)
+# detach("package:dplyr")
+library(plyr)
+library(foreign)
+library(stringr)
+library(dummies)
+```
+
+## Load Data
+```{r loadData}
+
+## Load medical data
+# MD2005 <- import("/Data/IHDS_Medical_2005/DS0003/22626-0003-Data.tsv")
+# 
+# load("/Data/IHDS_Medical Facilities_2011-2012/DS0006/36151-0006-Data.rda")
+# MDFAC2012 <- da36151.0006
+# rm("da36151.0006")
+# 
+# load("/Users/Yesh/Google Drive/GW/Undegraduate/GW 2016-2017/2017 Spring/Proseminar in Econ/Data/IHDS_Medical Staff_2011-2012/DS0005/36151-0005-Data.rda")
+# MDSTAFF2012 <- da36151.0005
+# rm("da36151.0005")
+
+## load household data
+load("../SeniorThesisRawData/IHDS_Households_2011-2012/DS0002/36151-0002-Data.rda")
+HH2012 <- da36151.0002
+rm("da36151.0002")
+
+HH2005 <- load("../SeniorThesisRawData/IHDS_Households_2005/DS0002/22626-0002-Data.rda")
+HH2005 <- da22626.0002
+rm("da22626.0002")
+
+
+## Load individual data
+load("../SeniorThesisRawData/IHDS_Individuals_2011-2012/DS0001/36151-0001-Data.rda")
+IND2012 <- da36151.0001
+rm("da36151.0001")
+
+IND2005 <- import("../SeniorThesisRawData/IHDS_Individuals_2005/DS0001/22626-0001-Data.tsv")
+
+
+## Load village level data
+load("../SeniorThesisRawData/IHDS_Village_2011-2012/DS0012/36151-0012-Data.rda")
+VIL2012 <- da36151.0012
+rm("da36151.0012")
+
+VIL2005 <- import("../SeniorThesisRawData/IHDS_Village_2005/DS0007/22626-0007-Data.tsv")
+
+
+# Create village id vriable for dataframes
+VIL2005$id <- paste(VIL2005$stateid, VIL2005$distid, VIL2005$psuid, sep=".")
+VIL2012$id <- paste(VIL2012$STATE, VIL2012$DISTA, VIL2012$VILL, sep=".")
+
+IND2005$id <- paste(IND2005$stateid, IND2005$distid, IND2005$psuid, sep=".")
+IND2012$id <- paste((as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$STATEID)))), IND2012$DISTID, IND2012$PSUID, sep=".")
+
+HH2005$id <- paste((as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$STATEID)))), HH2005$DISTID, HH2005$PSUID, sep=".")
+HH2012$id <- paste((as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2012$STATEID)))), HH2012$DISTID, HH2012$PSUID, sep=".")
+
+
+```
+
+
+
+# Creating new dataframe from raw survey datasets
+
+## 1. Add village road data
+```{r villageRoadData}
+
+# 1. Create two seperate dataframe for 2005 and 2012. Will merge at the end using rbind.
+
+vilID2005start <- which(colnames(VIL2005) == "stateid")
+vilID2005end <- which(colnames(VIL2005) == "psuid")
+
+df2005 <- VIL2005[, vilID2005start:vilID2005end]
+df2005 <- rename(df2005, c("stateid"="state", "distid"="district", "psuid"="village"))
+df2005$year <- 2005
+
+
+vilID2012start <- which(colnames(VIL2012) == "STATE")
+vilID2012end <- which(colnames(VIL2012) == "VILL")
+
+df2012 <- VIL2012[, vilID2012start:vilID2012end]
+df2012 <- rename(df2012, c("STATE"="state", "DISTA"="district", "VILL"="village"))
+df2012$year <- 2012
+
+rm(vilID2005end, vilID2005start, vilID2012end, vilID2012start)
+
+  ## Create id for village level data
+df2005$id <- paste(df2005$state, df2005$district, df2005$village, sep=".")
+
+df2012$id <- paste(df2012$state, df2012$district, df2012$village, sep=".")
+
+# 2. Add village road data
+df2005 <- merge(df2005, VIL2005[, c("id", "vi3a", "vi3b", "vi3c", "vi3d")], by = "id")
+
+df2005 <- rename(df2005, c("vi3a"="roadPaved", "vi3b"="distanceToPavedRoad", "vi3c"="roadMonsoonUsability", "vi3d" = "yearsWithPavedRoad"))
+
+df2012 <- merge(df2012, VIL2012[, c("id", "VI3", "VI3A", "VI3B", "VI3C")], by = "id")
+
+df2012 <- rename(df2012, c("VI3"="roadPaved", "VI3A"="distanceToPavedRoad", "VI3B"="roadMonsoonUsability", "VI3C"="yearsWithPavedRoad"))
+
+# 3. Remove duplicate id's due to survey merge errors
+df2005 <- df2005[!duplicated(df2005$id),]
+df2012 <- df2012[!duplicated(df2012$id),]
+
+# 4. Reassign factor values to 2012 roadPaved data to match 2005 data
+  ## 2012: 3 = footpath only, 2 = katcha (dirt) road, 1 = pucca (paved) road
+  ## 2005: 0 = footpath only, 1 = katcha (dirt) road, 2 = pucca (paved) road 
+  ## Convert both to 0 = footpath, 1 = paved road
+
+df2005$roadPaved <- ifelse(df2005$roadPaved == 2, 1, 0)
+
+df2012$roadPaved <- as.numeric(sub("\\).*", "", sub(".*\\(", "", df2012$roadPaved)))
+df2012$roadMonsoonUsability <- as.numeric(sub("\\).*", "", sub(".*\\(", "", df2012$roadMonsoonUsability)))
+df2012$roadPaved <- ifelse(df2012$roadPaved == 1, 1, 0)
+
+```
+
+## 2. Add village control data
+```{r villageControl Data}
+
+# Create variables with mean daily agriculture and non-agricultural wage for men, women, and children (<15 years old).
+ 
+   ## 2005
+
+# # NO LONGER USING VILLAGE LEVEL INCOME DATA (using individual level instead)
+# VIL2005$wageDailyCasualAgriculturalWorkerMen <- rowMeans(VIL2005[,c("ve1a", "ve1d", "ve2a", "ve2d", "ve3a", "ve3d")], na.rm = FALSE, dims = 1)
+# VIL2005$wageDailyCasualAgriculturalWorkerWomen <- rowMeans(VIL2005[,c("ve1b", "ve1e", "ve2b", "ve2e", "ve3b", "ve3e")], na.rm = FALSE, dims = 1)
+# VIL2005$wageDailyCasualAgriculturalWorkerChildren <- rowMeans(VIL2005[,c("ve1c", "ve1f", "ve2c", "ve2f", "ve3c", "ve3f")], na.rm = FALSE, dims = 1)
+# VIL2005$wageDailyNonAgriculturalWorkerMen <- rowMeans(VIL2005[,c("ve4c", "ve5c", "ve6c")], na.rm = FALSE, dims = 1)
+# VIL2005$wageDailyNonAgriculturalWorkerWomen <- rowMeans(VIL2005[,c("ve4d", "ve5d", "ve6d")], na.rm = FALSE, dims = 1)
+# VIL2005$wageDailyNonAgriculturalWorkerChildren <- rowMeans(VIL2005[,c("ve4e", "ve5e", "ve6e")], na.rm = FALSE, dims = 1)
+
+df2005 <- merge(df2005, VIL2005[, c("id", "vi16", "vi1b", "vi2b", "area", "popcat","tothh")], by = "id")
+ 
+df2005 <- rename(df2005, c("vi16"="ImmunizationCampaignsNumber", "vi1b"="distanceToNearestTown", "vi2b"="distanceToNearestDistrictHQ", "popcat" = "populationCategories", "tothh"="householdNumbersOf"))
+ 
+ 
+   ## 2012
+
+# # NO LONGER USING VILLAGE LEVEL INCOME DATA (using individual level instead)
+# VIL2012$wageDailyCasualAgriculturalWorkerMen <- rowMeans(VIL2012[,c("VE1A", "VE1D", "VE2A", "VE2D", "VE3A", "VE3D")], na.rm = FALSE, dims = 1)
+# VIL2012$wageDailyCasualAgriculturalWorkerWomen <- rowMeans(VIL2012[,c("VE1B", "VE1E", "VE2B", "VE2E", "VE3B", "VE3E")], na.rm = FALSE, dims = 1)
+# VIL2012$wageDailyCasualAgriculturalWorkerChildren <- rowMeans(VIL2012[,c("VE1C", "VE1F", "VE2C", "VE2F", "VE3C", "VE3F")], na.rm = FALSE, dims = 1)
+# VIL2012$wageDailyNonAgriculturalWorkerMen <- rowMeans(VIL2012[,c("VE4A", "VE5A", "VE6A")], na.rm = FALSE, dims = 1)
+# VIL2012$wageDailyNonAgriculturalWorkerWomen <- rowMeans(VIL2012[,c("VE4B", "VE5B", "VE6B")], na.rm = FALSE, dims = 1)
+# VIL2012$wageDailyNonAgriculturalWorkerChildren <- rowMeans(VIL2012[,c("VE4C", "VE5C", "VE6C")], na.rm = FALSE, dims = 1)
+
+VIL2012$area = ""
+VIL2012$popcat = ""
+VIL2012$tothh = ""
+
+df2012 <- merge(df2012, VIL2012[, c("id", "VI20", "VI1B", "VI2B", "area", "popcat","tothh")], by = "id")
+
+df2012 <- rename(df2012, c("VI20"="ImmunizationCampaignsNumber", "VI1B"="distanceToNearestTown", "VI2B"="distanceToNearestDistrictHQ", "popcat" = "populationCategories", "tothh"="householdNumbersOf"))
+
+# Remove Repeat Data
+
+df2005 <- df2005[!duplicated(df2005$id),]
+df2012 <- df2012[!duplicated(df2012$id),]
+```
+
+
+# 3. Add Average Individual Short Term Morbidity Data to df2005 and df2012 - NO LONGER ANALYZING
+```{r individualHealthDataSM}
+# 
+# 
+# # 1. Average Individual Short Term Morbidity for each village
+# 
+#   ## 2005
+# SM2005begin <- which(colnames(IND2005) == "sm2")
+# SM2005end <- which(colnames(IND2005) == "sm19")
+# 
+#   # replace values less than 0 (survey error values) with 0, and replace NAs with 0. Purpose to normalize data with 2012 data which uses 0, rather than NA as default.
+# 
+# IND2005[, SM2005begin: SM2005end] <- lapply(IND2005[, SM2005begin: SM2005end], function(x) replace(x, x %in% -7:-1, NA))
+# IND2005[, SM2005begin: SM2005end] <- lapply(IND2005[, SM2005begin: SM2005end], function(x) replace(x, x %in% NA, 0))
+# 
+# VilInd2005 <- aggregate(IND2005[, SM2005begin: SM2005end], by = list(IND2005$id), FUN = mean, na.rm = TRUE)
+# 
+# VilInd2005 <- rename(VilInd2005, c("Group.1" = "id", "sm2" = "smDaysSick", "sm3" = "smFever", "sm4" = "smCough", "sm5" = "smCoughWithShortBreaths", "sm6" = "smDiarrhea", "sm7" = "smDiarrheaWithBlood", "sm8" = "smDiarrheaLiquidIntake", "sm9" = "smDiarrheaWithORS", "sm10" = "smDaysIncapacitated", "sm11" = "smTreatmentRecieved", "sm13a1" = "smTreatmentWho1", "sm14a1" = "smTreatmentWhere1", "sm13a2" = "smTreatmentWho2", "sm14a2" = "smTreatmentWhere2", "sm15" = "smDaysHospitalized", "sm16" = "smCostOfHospitalStay", "sm17" = "smCostIncludesMedication", "sm18" = "smCostOfMeds", "sm19" = "smTravelExpenses"))
+# 
+# df2005 <- merge(df2005, VilInd2005, by="id")
+# 
+# 
+#   ## 2012
+# 
+# SM2012begin <- which(colnames(IND2012) == "SM3")
+# SM2012end <- which(colnames(IND2012) == "SM21")
+#   # convert weird strings of "(1) Yes 1" to numType of "1"
+# IND2012$SM4 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM4)))
+# IND2012$SM5 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM5)))
+# IND2012$SM6 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM6)))
+# IND2012$SM7 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM7)))
+# IND2012$SM8 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM8)))
+# IND2012$SM9 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM9)))
+# IND2012$SM10 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM10)))
+# IND2012$SM12 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM12)))
+# IND2012$SM14A <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM14A)))
+# IND2012$SM14B <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM14B)))
+# IND2012$SM15A <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM15A)))
+# IND2012$SM15B <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM15B)))
+# IND2012$SM16 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM16)))
+# IND2012$SM17 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM17)))
+# IND2012$SM18 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM18)))
+# IND2012$SM19 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM19)))
+# IND2012$SM20 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM20)))
+# IND2012$SM21 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$SM21)))
+# 
+#   # replace values less than 0 (survey error values) with 0, and replace NAs with 0 
+# IND2012[, SM2012begin: SM2012end] <- lapply(IND2012[, SM2012begin: SM2012end], function(x) replace(x, x %in% -7:-1, NA))
+# IND2012[, SM2012begin: SM2012end] <- lapply(IND2012[, SM2012begin: SM2012end], function(x) replace(x, x %in% NA, 0))
+# VilInd2012 <- aggregate(IND2012[, SM2012begin:SM2012end], by = list(IND2012$id), FUN = mean, na.rm = TRUE)
+# 
+# # drop data not in 2005 survey
+# VilInd2012[, c("SM16")] <- NULL
+# 
+# VilInd2012 <- rename(VilInd2012, c("Group.1" = "id", "SM3" = "smDaysSick", "SM4" = "smFever", "SM5" = "smCough", "SM6" = "smCoughWithShortBreaths", "SM7" = "smDiarrhea", "SM8" = "smDiarrheaWithBlood", "SM9" = "smDiarrheaLiquidIntake", "SM10" = "smDiarrheaWithORS", "SM11" = "smDaysIncapacitated", "SM12" = "smTreatmentRecieved", "SM14A" = "smTreatmentWho1", "SM14B" = "smTreatmentWhere1", "SM15A" = "smTreatmentWho2", "SM15B" = "smTreatmentWhere2", "SM17" = "smDaysHospitalized", "SM18" = "smCostOfHospitalStay", "SM19" = "smCostIncludesMedication", "SM20" = "smCostOfMeds", "SM21" = "smTravelExpenses"))
+# df2012 <- merge(df2012, VilInd2012, by="id")
+# 
+# rm(SM2005begin, SM2005end, SM2012begin, SM2012end, VilInd2005, VilInd2012)
+# 
+#   # Remove Repeat Data
+# 
+# df2005 <- df2005[!duplicated(df2005$id),]
+# df2012 <- df2012[!duplicated(df2012$id),]
+
+```
+
+
+## 3. Add Average Individual Major Morbidity Data to df2005 and df2012
+```{r individualHealthDataMM}
+
+# Average Individual Major Morbidity for each village
+
+  ## 2005
+
+MB2005begin <- which(colnames(IND2005) == "mb2")
+MB2005end <- which(colnames(IND2005) == "mb25")
+
+# replace values less than 0 (survey error values) with 0, and replace NAs with 0. Purpose to normalize data with 2012 data which uses 0, rather than NA as default.
+IND2005[, MB2005begin: MB2005end] <- lapply(IND2005[, MB2005begin: MB2005end], function(x) replace(x, x %in% -7:-1, NA))
+IND2005[, MB2005begin: MB2005end] <- lapply(IND2005[, MB2005begin: MB2005end], function(x) replace(x, x %in% NA, 0))
+
+VilInd2005 <- aggregate(IND2005[, MB2005begin: MB2005end], by = list(IND2005$id), FUN = mean, na.rm = TRUE)
+VilInd2005 <- rename(VilInd2005, c("Group.1" = "id", "mb2" = "mbCataract", "mb3" = "mbTuberculosis", "mb4" = "mbHighBP", "mb5" = "mbHeartDisease", "mb6" = "mbDiabetes", "mb7" = "mbLeprosy", "mb8" = "mbCancer", "mb9" = "mbAsthma", "mb10" = "mbPolio", "mb11" = "mbParalysis","mb12"="mbEpilepsy" ,"mb13" = "mbMentalIllness", "mb14" = "mbSTDorAIDS", "mb15" = "mbOtherLongTerm", "mb16" = "mbDaysIncapacitated", "mb17" = "mbTreatmentRecieved", "mb19_1" = "mbTreatmentWho1", "mb20_1" = "mbTreatmentWhere1", "mb19_2" = "mbTreatmentWho2", "mb20_2" = "mbTreatmentWhere2", "mb21" = "mbDaysHospitalized", "mb22" = "mbCostOfTreatment", "mb23" = "mbCostIncludesMedication", "mb24" = "mbCostOfMeds", "mb25" = "mbTravelExpenses"))
+df2005 <- merge(df2005, VilInd2005, by="id")
+
+  ## 2012
+
+MB2012begin <- which(colnames(IND2012) == "MB3")
+MB2012end <- which(colnames(IND2012) == "MB28")
+  # convert weird strings of "(1) Yes 1" to numType of "1"
+IND2012$MB3 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB3)))
+IND2012$MB4 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB4)))
+IND2012$MB5 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB5)))
+IND2012$MB6 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB6)))
+IND2012$MB7 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB7)))
+IND2012$MB8 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB8)))
+IND2012$MB9 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB9)))
+IND2012$MB10 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB10)))
+IND2012$MB11 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB11)))
+IND2012$MB12 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB12)))
+IND2012$MB13 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB13)))
+IND2012$MB14 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB14)))
+IND2012$MB15 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB15)))
+IND2012$MB16 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB16)))
+IND2012$MB17 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB17)))
+IND2012$MB19 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB19)))
+IND2012$MB21A <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB21A)))
+IND2012$MB21B <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB21B)))
+IND2012$MB22A <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB22A)))
+IND2012$MB22B <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB22B)))
+IND2012$MB23 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB23)))
+IND2012$MB26 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB26)))
+
+# replace values less than 0 (survey error values) with 0, and replace NAs with 0 
+IND2012[, MB2012begin: MB2012end] <- lapply(IND2012[, MB2012begin: MB2012end], function(x) replace(x, x %in% -7:-1, NA))
+IND2012[, MB2012begin: MB2012end] <- lapply(IND2012[, MB2012begin: MB2012end], function(x) replace(x, x %in% NA, 0))
+
+VilInd2012 <- aggregate(IND2012[, MB2012begin:MB2012end], by = list(IND2012$id), FUN = mean, na.rm = TRUE)
+
+# drop data not in 2005 survey
+VilInd2012[, c("MB16","MB23")] <- NULL
+
+VilInd2012 <- rename(VilInd2012, c("Group.1" = "id", "MB3" = "mbCataract", "MB4" = "mbTuberculosis", "MB5" = "mbHighBP", "MB6" = "mbHeartDisease", "MB7" = "mbDiabetes", "MB8" = "mbLeprosy", "MB9" = "mbCancer", "MB10" = "mbAsthma", "MB11" = "mbPolio", "MB12" = "mbParalysis","MB13"="mbEpilepsy" ,"MB14" = "mbMentalIllness", "MB15" = "mbSTDorAIDS", "MB17" = "mbOtherLongTerm", "MB18" = "mbDaysIncapacitated", "MB19" = "mbTreatmentRecieved", "MB21A" = "mbTreatmentWho1", "MB21B" = "mbTreatmentWhere1", "MB22A" = "mbTreatmentWho2", "MB22B" = "mbTreatmentWhere2", "MB24" = "mbDaysHospitalized", "MB25" = "mbCostOfTreatment", "MB26" = "mbCostIncludesMedication", "MB27" = "mbCostOfMeds", "MB28" = "mbTravelExpenses"))
+df2012 <- merge(df2012, VilInd2012, by="id")
+
+
+rm(MB2005begin, MB2005end, MB2012begin, MB2012end, VilInd2005, VilInd2012)
+
+
+# Remove Repeat Data
+
+df2005 <- df2005[!duplicated(df2005$id),]
+df2012 <- df2012[!duplicated(df2012$id),]
+```
+
+
+## 4. Add in individual controls to df2005 and df2012
+```{r individualHealthControls}
+
+#2005 -------------------------------------------
+# 1. Get range for tobacco and alcohol variables
+TO2005begin <- which(colnames(IND2005) == "to2")
+TO2005end <- which(colnames(IND2005) == "to4")
+
+TO2012begin <- which(colnames(IND2012) == "TO4")
+TO2012end <- which(colnames(IND2012) == "TO6")
+  ## NOTE: using smoking bidis or hukkah for 2012 (TO4) but smoking cigarettes, bidis, or hukkah for 2005
+
+# 2. Get range for school-attendance variables
+SC2005begin <- which(colnames(IND2005) == "ta3")
+SC2005end <- which(colnames(IND2005) == "ta4")
+
+SC2012begin <- which(colnames(IND2012) == "TA3")
+SC2012end <- which(colnames(IND2012) == "TA4")
+
+# 3. Get range for literacy and math-score variables
+LM2005begin <- which(colnames(IND2005) == "ta7lvl")
+LM2005end <- which(colnames(IND2005) == "ta9lvl")
+  ## NOTE: drop ta7lang, ta8lang, and ta9lang
+
+LM2012begin <- which(colnames(IND2012) == "TA8B")
+LM2012end <- which(colnames(IND2012) == "TA10B")
+  ## NOTE: drop TA9A and TA10A
+
+# 4. replace values less than 0 (survey error values) with NA.
+IND2005[,c(TO2005begin:TO2005end, SC2005begin:SC2005end, LM2005begin:LM2005end)] <- lapply(IND2005[, c(TO2005begin:TO2005end, SC2005begin:SC2005end, LM2005begin:LM2005end)], function(x) replace(x, x %in% -7:-1, NA))
+
+IND2012[,c(TO2012begin:TO2012end, SC2012begin:SC2012end, LM2012begin:LM2012end)] <- lapply(IND2012[, c(TO2012begin:TO2012end, SC2012begin:SC2012end, LM2012begin:LM2012end)], function(x) replace(x, x %in% -7:-1, NA))
+
+# 4.1 Extract values from 2012 data cause of its dumb format
+IND2012$TO4 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TO4)))
+IND2012$TO5 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TO5)))
+IND2012$TO6 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TO6)))
+IND2012$TA3 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA3)))
+IND2012$TA4 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA4)))
+IND2012$TA8B <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA8B)))
+IND2012$TA9B <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA9B)))
+IND2012$TA10B <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA10B)))
+IND2012$TA8A <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA8A)))
+IND2012$TA9A <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA9A)))
+IND2012$TA10A <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA10A)))
+
+# 5. Aggregate Data to Village Level
+VilInd2005 <- aggregate(IND2005[ ,c(TO2005begin:TO2005end, SC2005begin:SC2005end, LM2005begin:LM2005end)], by=list(IND2005$id), FUN = mean, na.rm = TRUE)
+
+VilInd2012 <- aggregate(IND2012[ ,c(TO2012begin:TO2012end, SC2012begin:SC2012end, LM2012begin:LM2012end)], by=list(IND2012$id), FUN = mean, na.rm = TRUE)
+
+# 6. Drop irrelevant variables ta7lang, ta8lang, and ta9lang
+VilInd2005[, c("ta7lang", "ta8lang", "ta9lang")] <- NULL
+VilInd2012[, c("TA9A", "TA10A")] <- NULL
+
+# 7. Rename variables
+VilInd2005 <- rename(VilInd2005, c("Group.1" = "id", "to2"="smokeTobacco", "to3"="chewTobacco", "to4"="drinkAlcohol", "ta3"="attendedSchool", "ta4"="gradeCompleted", "ta7lvl"="readingScore", "ta8lvl"="mathScore", "ta9lvl"="writingScore"))
+
+VilInd2012 <- rename(VilInd2012, c("Group.1" = "id", "TO4"="smokeTobacco", "TO5"="chewTobacco", "TO6"="drinkAlcohol", "TA3"="attendedSchool", "TA4"="gradeCompleted", "TA8B"="readingScore", "TA9B"="mathScore", "TA10B"="writingScore"))
+
+# 8. Merge with df2005 and df2012
+df2005 <- merge(df2005, VilInd2005, by="id")
+df2012 <- merge(df2012, VilInd2012, by="id")
+
+rm(TO2005begin, TO2005end, TO2012begin, TO2012end, SC2005begin, SC2005end, SC2012begin, SC2012end, LM2005begin, LM2005end, LM2012begin, LM2012end, VilInd2005, VilInd2012, IND2005, IND2012)
+
+```
+
+## 5. Add in household controls to df2005 and df2012
+```{r householdControls}
+# 1. Decide which variables to add
+## --------
+# ## urban v rural -> factor binary
+# HH2005$URBAN
+# HH2012$URBAN2011
+# 
+# ## total HH income -> Rs, ratio
+# HH2005$INCOME
+# HH2012$INCOME
+# 
+# ## caste category -> factor
+# HH2005$ID13
+# HH2012$ID13
+# 
+# ## years in place --> note 90 = forever
+# HH2005$ID16
+# HH2012$ID15
+# 
+# ## toilet -> factor
+# HH2005$SA4
+# HH2012$SA4
+# 
+# ## electricity -> factor binary
+# HH2005$FU1
+# HH2012$FU1
+# 
+# ## electricity hours/day -> ratio
+# HH2005$FU1A
+# HH2012$FU1A
+# 
+# ## drinking water source --> factor
+# HH2005$WA1
+# HH2012$WA1A
+## --------
+
+HH2005Controls <- c("URBAN", "INCOME", "ID13", "ID16","SA4", "FU1", "FU1A", "WA1")
+HH2012Controls <- c("URBAN2011", "INCOME", "ID13", "ID15", "SA4", "FU1", "FU1A", "WA1A")
+
+
+# 2. replace values less than 0 (survey error values) with NA.
+HH2005[,HH2005Controls] <- lapply(HH2005[, HH2005Controls], function(x) replace(x, x %in% -7:-1, NA))
+HH2012[,HH2012Controls] <- lapply(HH2012[, HH2012Controls], function(x) replace(x, x %in% -7:-1, NA))
+
+# 3. Extract values from 2005 and 2012 data cause of its dumb format
+HH2005$URBAN <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$URBAN)))
+HH2005$ID13 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$ID13)))
+HH2005$SA4 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$SA4)))
+HH2005$FU1 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$FU1)))
+HH2005$WA1 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$WA1)))
+
+HH2012$URBAN2011 <- as.numeric(str_sub(HH2012$URBAN2011,-1,-1))
+HH2012$ID13 <- as.numeric(str_sub(HH2012$ID13,-1,-1))
+HH2012$SA4 <- as.numeric(str_sub(HH2012$SA4, 2, 2))
+HH2012$FU1 <- as.numeric(str_sub(HH2012$FU1,-1,-1))
+HH2012$WA1A <- as.numeric(str_sub(HH2012$WA1A,-2,-1))
+
+# 4. Aggregate data to village level
+VilInd2005 <- aggregate(HH2005[ ,HH2005Controls], by=list(HH2005$id), FUN=mean, na.rm=TRUE)
+VilInd2012 <- aggregate(HH2012[ ,HH2012Controls], by=list(HH2012$id), FUN=mean, na.rm=TRUE)
+
+# 5. Rename Variables
+VilInd2005 <- rename(VilInd2005, c("Group.1"="id", "URBAN"="urban", "INCOME"="income", "ID13"="caste", "ID16"="yearsLivingHere","SA4"="ownToilet", "FU1"="electricity", "FU1A"="electricityHours", "WA1"="drinkingWaterSource"))
+VilInd2012 <- rename(VilInd2012, c("Group.1"="id", "URBAN2011"="urban", "INCOME"="income", "ID13"="caste", "ID15"="yearsLivingHere","SA4"="ownToilet", "FU1"="electricity", "FU1A"="electricityHours", "WA1A"="drinkingWaterSource"))
+
+# 6. Merge with df2005 and df2012
+df2005 <- merge(df2005, VilInd2005, by="id")
+df2012 <- merge(df2012, VilInd2012, by="id")
+
+## clean workspace
+rm(HH2005Controls, HH2012Controls, VilInd2005, VilInd2012, HH2005, HH2012)
+
+# Remove Repeat Data
+
+df2005 <- df2005[!duplicated(df2005$id),]
+df2012 <- df2012[!duplicated(df2012$id),]
+
+```
+
+## 6. Add in Medical Facility Data
+```{r medFacilityData}
+
+# 1. Identify variables number of medical facilities.
+medicalFacilityVariables2005 = c("id", "vma1", "vma2", "vma3", "vma4", "vma5", "vma7", "vma8", "vma9", "vma10", "vma13")
+medicalFacilityRename2005 = c("vma1"="healthSubCenter", "vma2"="primaryHealthCenter", "vma3"="communityHealthCenter", "vma4"="districtHospital", "vma5"="govtMaternityCenter", "vma7"="pvtClinicTrainedDoc", "vma8"="pvtClinicUntrainedDoc", "vma9"="pvtHospital", "vma10"="pvtPharm", "vma13"="otherGovtMedFacility")
+
+medicalFacilityVariables2012 = c("id", "VMA1", "VMA3", "VMA4", "VMA5", "VMA6", "VMA7", "VMA8", "VMA9", "VMA10", "VMA11")
+medicalFacilityRename2012 = c("VMA1"="healthSubCenter", "VMA3"="primaryHealthCenter", "VMA4"="communityHealthCenter", "VMA5"="districtHospital", "VMA6"="govtMaternityCenter", "VMA7"="pvtClinicTrainedDoc", "VMA8"="pvtClinicUntrainedDoc", "VMA9"="pvtHospital", "VMA10"="pvtPharm", "VMA11"="otherGovtMedFacility")
+
+# 2. Identify variables for distance to medical facility if not in town.
+medicalFacilityDist2005 = c("id", "vmd1", "vmd2", "vmd3", "vmd4", "vmd5", "vmd7", "vmd8", "vmd9", "vmd10", "vmd13")
+medicalFacilityDistRename2005 = c("vmd1"="distHealthSubCenter", "vmd2"="distPrimaryHealthCenter", "vmd3"="distCommunityHealthCenter", "vmd4"="distDistrictHospital", "vmd5"="distGovtMaternityCenter", "vmd7"="distPvtClinicTrainedDoc", "vmd8"="distPvtClinicUntrainedDoc", "vmd9"="distPvtHospital", "vmd10"="distPvtPharm", "vmd13"="distOtherGovtMedFacility")
+
+medicalFacilityDist2012 = c("id", "VMD1", "VMD3", "VMD4", "VMD5", "VMD6", "VMD7", "VMD8", "VMD9", "VMD10", "VMD11")
+medicalFacilityDistRename2012 = c("VMD1"="distHealthSubCenter", "VMD3"="distPrimaryHealthCenter", "VMD4"="distCommunityHealthCenter", "VMD5"="distDistrictHospital", "VMD6"="distGovtMaternityCenter", "VMD7"="distPvtClinicTrainedDoc", "VMD8"="distPvtClinicUntrainedDoc", "VMD9"="distPvtHospital", "VMD10"="distPvtPharm", "VMD11"="distOtherGovtMedFacility")
+
+# 3. Bind Data to df2005 and df2012 and rename properly
+df2005 <- merge(df2005, VIL2005[,medicalFacilityVariables2005], by="id")
+df2005 <- rename(df2005, replace = medicalFacilityRename2005)
+df2005 <- merge(df2005, VIL2005[,medicalFacilityDist2005], by="id")
+df2005 <- rename(df2005, replace = medicalFacilityDistRename2005)
+
+df2012 <- merge(df2012, VIL2012[,medicalFacilityVariables2012], by="id")
+df2012 <- rename(df2012, replace = medicalFacilityRename2012)
+df2012 <- merge(df2012, VIL2012[,medicalFacilityDist2012], by="id")
+df2012 <- rename(df2012, replace = medicalFacilityDistRename2012)
+
+# 4. Remove Repeat Data
+
+df2005 <- df2005[!duplicated(df2005$id),]
+df2012 <- df2012[!duplicated(df2012$id),]
+
+# Clear Workspace
+
+rm(VIL2005, VIL2012, medicalFacilityVariables2005, medicalFacilityRename2005, medicalFacilityDist2005, medicalFacilityDistRename2005, medicalFacilityVariables2012, medicalFacilityRename2012, medicalFacilityDist2012, medicalFacilityDistRename2012)
+
+```
+
+
+## Export data to .csv files
+```{r exportCleanedData}
+df <- rbind(df2005, df2012)
+
+df <- data.frame(lapply(df[,], function(x) replace(x, x %in% -100:-1, NA)))
+
+write.csv(df, file = "ruralHealthAndRoadsOfIndianVillages.csv")
+write.csv(df2005, file = "ruralHealthAndRoadsOfIndianVillages2005.csv")
+write.csv(df2012, file = "ruralHealthAndRoadsOfIndianVillages2012.csv")
+
+numberOfCommonVillages <- dim(merge(df2005, df2012, by="id"))[1]
+numberOfCommonVillages
+
+# df <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
+rm(df, df2005, df2012, numberOfCommonVillages)
+```
+
+
+
+# NOTES
+ * Area, Population, and num of HH is missing from 2012 village data
+
+# QUESTIONS
+
+ 
+# TO ADD
+  * add gov't programs at village level
+    * National Rural Health Mission
+  * individual immunization information
+
+# TO FIX
+  * Clean data for negative values and replace negative values with NA.
+  * mbTreatmentWho1,2
+    * currently mean is calculated, create dummy variable for each cat
+  * mbTreatmentWhere1,2
+    * currently mean is calculated, create dummy variable for each cat
+  * caste
+    * currently mean is calculated, create dummy variable for each cat
+  * drinkingWaterSource
+    * currently mean is calculated, create dummy variable for each cat
+  * Redo rename function using dplyr package for consistency
+    
+# HOW TO CREATE DUMMY VARIABLES
+  * 1. Create dataframe with CatVars of interest and id
+      * test <- data.frame(IND2005[, c("id","sm13a1")])
+  * 2. Convert variables to factor type
+      * test[,c("sm13a1")] <- as.factor(test[,c("sm13a1")])
+  * 3. Create dummy variables
+      * test <- dummy.data.frame(test, names=c("sm13a1"), sep = ".")
+  * 4. Rename dummy variables
+      * test <- rename(test, c("test"="smTreatmentWho1.Doctor"))
+  * 5. Merge dataframe to main dataset
+
+
+
+
+
+ 

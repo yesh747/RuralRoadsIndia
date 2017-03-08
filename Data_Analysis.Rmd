@@ -1,0 +1,244 @@
+---
+title: "Econ Thesis Data Analysis"
+author: "Yeshwant Chillakuru"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# plotting
+library(ggplot2)
+
+# regressions: robust and panel
+library(MASS)
+library(plm)
+library(foreign)
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+# data manipulation
+library(dplyr)
+library(tidyr)
+
+# other
+library(memisc)
+library(pander)
+```
+
+
+```{r loadData, echo=FALSE}
+df <- read.csv("ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
+df2005 <- read.csv("ruralHealthAndRoadsOfIndianVillages2005.csv", header = TRUE, row.names = 1)
+df2012 <- read.csv("ruralHealthAndRoadsOfIndianVillages2012.csv", header = TRUE, row.names = 1)
+```
+
+
+
+# I. Exploratory Data Analysis
+```{r EDA1, tidy=TRUE, results='asis', include=FALSE}
+dim(df)
+knitr::kable(head(df))
+colnames(df)
+summary(df)
+```
+
+```{r EDA2, tidy=TRUE, include=TRUE, results='asis'}
+colnames(df)
+
+```
+
+# Conduct Diff of Differences analysis
+```{r EDA3, include=FALSE}
+
+rm(dfd, diffVars, lm.diff)
+diffVars <- c("id", "roadPaved", "mbTuberculosis")
+
+dfd <- merge(df2005[, diffVars], df2012[, diffVars], by="id")
+
+dfd[, "diffRoadPaved"] <- dfd[,"roadPaved.y"] - dfd[,"roadPaved.x"]
+dfd[, "diffMbTuberculosis"] <- dfd[, "mbTuberculosis.y"] - dfd[, "mbTuberculosis.x"]
+
+table(dfd$diffRoadPaved)
+summary(dfd$diffMbTuberculosis)
+
+lm.diff <- lm(dfd$diffMbTuberculosis ~ dfd$diffRoadPaved)
+summary(lm.diff)
+
+
+mydata <- df[,c("id", "year")]
+mydata$time <- ifelse(mydata$year > 2005, 1, 0)
+
+
+
+```
+
+Between 2005 and 2012,
+* `r table(dfd$diffRoadPaved)[3]` got their first paved road(s).
+* `r table(dfd$diffRoadPaved)[2]` saw no change.
+* `r table(dfd$diffRoadPaved)[1]` lost their paved road(s).
+
+
+# Output Summary Stats for Road and Morbidity
+```{r EDA4 summary states, echo=FALSE}
+
+r2005 <- summary(df2005[, c("distanceToPavedRoad", "roadPaved")])
+r2012 <- summary(df2012[, c("distanceToPavedRoad", "roadPaved")])
+
+
+mbStart <- which(colnames(df) == "mbCataract")
+mbEnd <- which(colnames(df) == "mbDaysIncapacitated")
+
+mb2005 <- summary(df2005[, mbStart:mbEnd])
+mb2012 <- summary(df2012[, mbStart:mbEnd])
+
+r2005
+r2012
+mb2005
+mb2012
+
+rm(r2005, r2012, mb2005, mb2012)
+
+```
+
+
+------------
+# II. Regressions
+
+## 1. Univariate models
+```{r univariate, echo=FALSE, tidy=TRUE}
+lm.mb1 <- lm(mbDaysIncapacitated ~ roadPaved, data = df)
+lm.mb2 <- lm(mbDaysIncapacitated ~ distanceToPavedRoad, data = df)
+
+mtableUni <- mtable(
+            'MB 1' = lm.mb1,
+            'MB 2' = lm.mb2,
+            summary.stats = c('R-squared','adj. R-squared', 'F','p','N'))
+
+rm(lm.mb1, lm.mb2, lm.mb3)
+
+mtableUni
+
+rm(mtableMulti)
+
+```
+
+
+## 2. Multivariate Models
+### Independent: Distance To Paved Road
+```{r multivariate1, echo=FALSE}
+
+lm.m.mb1 <- lm(mbDaysIncapacitated ~ distanceToPavedRoad + electricity + income, data=df)
+
+lm.m.mb2 <- lm(mbDaysIncapacitated ~ distanceToPavedRoad + distanceToNearestTown + writingScore + smokeTobacco , data=df)
+
+lm.m.mb3 <- lm(mbDaysIncapacitated ~ distanceToPavedRoad + electricity + income + distanceToNearestTown + writingScore + smokeTobacco , data=df)
+
+mtableMulti1 <- mtable(
+            'MB 1' = lm.m.mb1,
+            'MB 2' = lm.m.mb2,
+            'MB 3' = lm.m.mb3,
+            summary.stats = c('R-squared','adj. R-squared','F','p','N'))
+
+rm(lm.m.mb1, lm.m.mb2, lm.m.mb3)
+
+mtableMulti1
+
+rm(mtableMulti1)
+```
+
+### Independent: Road Paved
+```{r multivariate2, echo=FALSE}
+
+lm.m.mb1 <- lm(mbDaysIncapacitated ~ roadPaved + electricity + income, data=df)
+
+lm.m.mb2 <- lm(mbDaysIncapacitated ~ roadPaved + distanceToNearestTown + writingScore + smokeTobacco , data=df)
+
+lm.m.mb3 <- lm(mbDaysIncapacitated ~ roadPaved + electricity + income + distanceToNearestTown + writingScore + smokeTobacco , data=df)
+lm.m.mb3.hc1 <- coeftest(lm.m.mb3, vcov = vcovHC(lm.m.mb3, "HC1"))
+
+
+mtableMulti2 <- mtable(
+            'MB 1' = lm.m.mb1,
+            'MB 2' = lm.m.mb2,
+            'MB 3' = lm.m.mb3,
+            summary.stats = c('R-squared','adj. R-squared','F','p','N'))
+
+mtableMulti2
+
+rm(mtableMulti2)
+```
+
+
+```{r multivariate2OutputHTML, include=FALSE}
+# comparison of different rovust vs non-robust ols
+stargazer(lm.m.mb3, lm.m.mb3.hc1, type = "html", title="Results", 
+          digits = 4, align = TRUE, out="robust_regression_table_comparisons.html")
+
+openFileInOS("robust_regression_table_comparisons.html")
+
+# clean workspace
+rm( lm.m.mb1, lm.m.mb2, lm.m.mb3, lm.m.mb3.hc1)
+```
+
+
+## 3. Fixed Effects Regression Model
+```{r fixed effects, echo=FALSE}
+
+# distance to paved road
+lm.mb1 <- lm(mbDaysIncapacitated ~ distanceToPavedRoad + electricity + income + distanceToNearestTown + writingScore + smokeTobacco, data=df)
+
+
+
+plm.mb1 <- plm(mbDaysIncapacitated ~ distanceToPavedRoad + electricity + income + distanceToNearestTown + writingScore + smokeTobacco, data=df, index = c("id", "year"), model = "within")
+plm.mb1.hc1 <- coeftest(plm.mb1, vcov = vcovHC(plm.mb1, "arellano"))
+summary(plm.mb1)
+
+
+# paved vs unpaved road
+lm.mb2 <- lm(mbDaysIncapacitated ~ roadPaved + electricity + income + distanceToNearestTown + writingScore + smokeTobacco, data=df)
+
+
+plm.mb2 <- plm(mbDaysIncapacitated ~ roadPaved + electricity + income + distanceToNearestTown + writingScore + smokeTobacco, data=df, index = c("id", "year"), model = "within")
+plm.mb2.hc1 <- coeftest(plm.mb2, vcov = vcovHC(plm.mb2, "arellano"))
+summary(plm.mb2)
+
+# test if fixed effects is better. p is small, use fixed effects
+pFtest(plm.mb1, lm.mb1) 
+pFtest(plm.mb2, lm.mb2) 
+```
+
+```{r fixed effects OutputHTML, include=FALSE}
+stargazer(plm.mb1, plm.mb1.hc1, type = "html", title="Results Fixed Effects", 
+          digits = 4, align = TRUE, out="robust_regression_table_comparisons2.html")
+
+openFileInOS("robust_regression_table_comparisons2.html")
+
+# Clean Workspace
+rm( plm.mb1, plm.mb1.hc1, plm.mb2, plm.mb2.hc1)
+```
+
+
+--------------------------------------------------------------------------------------------------
+# Regression Sandbox
+
+# To Do:
+  * Natural Experiment of Rural Road Expansion Program --> Evan and Owens --> COPS program
+      * **Can differences in differences method be used?**
+      * Use roadPaved as Treatment
+  * Granger Test for determining simultaneous causality?
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
