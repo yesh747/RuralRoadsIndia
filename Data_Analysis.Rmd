@@ -51,7 +51,7 @@ colnames(df)
 
 ```
 
-# Conduct Diff of Differences analysis
+## Conduct Diff of Differences analysis
 ```{r EDA3, include=FALSE}
 
 rm(dfd, diffVars, lm.diff)
@@ -72,8 +72,6 @@ summary(lm.diff)
 mydata <- df[,c("id", "year")]
 mydata$time <- ifelse(mydata$year > 2005, 1, 0)
 
-
-
 ```
 
 Between 2005 and 2012,
@@ -82,7 +80,7 @@ Between 2005 and 2012,
 * `r table(dfd$diffRoadPaved)[1]` lost their paved road(s).
 
 
-# Output Summary Stats for Road and Morbidity
+## Output Summary Stats for Road and Morbidity
 ```{r EDA4 summary states, echo=FALSE}
 
 r2005 <- summary(df2005[, c("distanceToPavedRoad", "roadPaved")])
@@ -100,14 +98,85 @@ r2012
 mb2005
 mb2012
 
-rm(r2005, r2012, mb2005, mb2012)
+rm(r2005, r2012, mb2005, mb2012, mbStart, mbEnd)
 
+```
+
+## Graphical Represenations of Data
+```{r EDA5, echo-FALSE}
+
+mbStart <- which(colnames(df) == "mbCataract")
+mbEnd <- which(colnames(df) == "mbSTDorAIDS")
+
+diseases <- colnames(df[,mbStart:mbEnd])
+
+for (disease in diseases) {
+  print(ggplot(data=df, aes(x=distanceToPavedRoad, y=df[, disease], color=as.factor(year))) + geom_point(alpha=0.3) + labs(title = disease))
+}
+
+
+
+rm(mbStart, mbEnd, diseases)
 ```
 
 
 ------------
 # II. Regressions
 
+$$diseaseIncidence_{it} = \beta distroad_{it} + \delta_{1} Ind_{it} + \delta_{2} household_{it} + \delta_{3} Village_{it} + \varepsilon_{it}$$
+
+## 1. Univariate Models
+```{r reg1, message=FALSE}
+mbStart <- which(colnames(df) == "mbCataract")
+mbEnd <- which(colnames(df) == "mbSTDorAIDS")
+
+diseases <- colnames(df[,mbStart:mbEnd])
+
+lm.mb <- list()
+lm.mb.hc1 <- list()
+for (disease in diseases) {
+  lm.mb[disease] <- list(lm(df[,disease] ~ distanceToPavedRoad, data=df))
+  
+  # generate robust standard errors
+  lm.mb.hc1[disease] <- list(coeftest(lm.mb[[disease]], function(x) vcovHC(x, type="HC1")))
+}
+
+stargazer(lm.mb[diseases], se=lm.mb.hc1[diseases]["Std. Error"], type = "html", column.labels=diseases, title="Results", 
+          digits = 4, align = TRUE, out="univariate_regressions.html")
+
+openFileInOS("univariate_regressions.html")
+
+rm(mbStart, mbEnd, diseases, lm.mb, lm.mb.hc1)
+```
+
+
+## 2. Multivariate FE Panel Models
+```{r reg2}
+mbStart <- which(colnames(df) == "mbCataract")
+mbEnd <- which(colnames(df) == "mbSTDorAIDS")
+
+diseases <- colnames(df[,mbStart:mbEnd])
+
+plm.mb <- list()
+plm.mb.hc1 <- list()
+for (disease in diseases) {
+  plm.mb[disease] <- list(plm(df[,disease] ~ distanceToPavedRoad + electricity + income + distanceToNearestTown + writingScore + smokeTobacco, data=df, index = c("id", "year"), model = "within"))
+  
+  # generate robust standard errors
+  plm.mb.hc1[disease] <- list(coeftest(plm.mb[[disease]], function(x) vcovHC(x, type="HC1")))
+}
+
+stargazer(plm.mb[diseases], se=plm.mb.hc1[diseases]["Std. Error"], type = "html", column.labels=diseases, title="Results", 
+          digits = 8, align = TRUE, out="multivariate_panel_regressions.html")
+
+openFileInOS("multivariate_panel_regressions.html")
+
+rm(mbStart, mbEnd, diseases, plm.mb, plm.mb.hc1)
+```
+
+
+-------
+# OLD STUFF
 ## 1. Univariate models
 ```{r univariate, echo=FALSE, tidy=TRUE}
 lm.mb1 <- lm(mbDaysIncapacitated ~ roadPaved, data = df)
@@ -143,8 +212,6 @@ mtableMulti1 <- mtable(
             'MB 3' = lm.m.mb3,
             summary.stats = c('R-squared','adj. R-squared','F','p','N'))
 
-rm(lm.m.mb1, lm.m.mb2, lm.m.mb3)
-
 mtableMulti1
 
 rm(mtableMulti1)
@@ -179,9 +246,6 @@ stargazer(lm.m.mb3, lm.m.mb3.hc1, type = "html", title="Results",
           digits = 4, align = TRUE, out="robust_regression_table_comparisons.html")
 
 openFileInOS("robust_regression_table_comparisons.html")
-
-# clean workspace
-rm( lm.m.mb1, lm.m.mb2, lm.m.mb3, lm.m.mb3.hc1)
 ```
 
 
@@ -191,6 +255,8 @@ rm( lm.m.mb1, lm.m.mb2, lm.m.mb3, lm.m.mb3.hc1)
 # distance to paved road
 lm.mb1 <- lm(mbDaysIncapacitated ~ distanceToPavedRoad + electricity + income + distanceToNearestTown + writingScore + smokeTobacco, data=df)
 
+summary(lm.mb1)
+summary(lm.mb2)
 
 
 plm.mb1 <- plm(mbDaysIncapacitated ~ distanceToPavedRoad + electricity + income + distanceToNearestTown + writingScore + smokeTobacco, data=df, index = c("id", "year"), model = "within")
@@ -218,7 +284,9 @@ stargazer(plm.mb1, plm.mb1.hc1, type = "html", title="Results Fixed Effects",
 openFileInOS("robust_regression_table_comparisons2.html")
 
 # Clean Workspace
-rm( plm.mb1, plm.mb1.hc1, plm.mb2, plm.mb2.hc1)
+rm(lm.mb1, lm.mb2, lm.mb3)
+rm(lm.m.mb1, lm.m.mb2, lm.m.mb3, lm.m.mb3.hc1)
+rm(plm.mb1, plm.mb1.hc1, plm.mb2, plm.mb2.hc1)
 ```
 
 
