@@ -2,7 +2,6 @@
 title: "Econ Thesis Data Analysis"
 author: "Yeshwant Chillakuru"
 output:
-  word_document: default
   html_document: default
 ---
 
@@ -46,7 +45,7 @@ colnames(df)
 summary(df)
 ```
 
-```{r EDA2, tidy=TRUE, include=TRUE, results='asis'}
+```{r EDA2, tidy=TRUE, include=FALSE, results='asis'}
 colnames(df)
 
 ```
@@ -115,8 +114,7 @@ for (disease in diseases) {
 }
 
 
-
-rm(mbStart, mbEnd, diseases)
+rm(mbStart, mbEnd, diseases, disease)
 ```
 
 
@@ -142,11 +140,11 @@ for (disease in diseases) {
 }
 
 stargazer(lm.mb[diseases], se=lm.mb.hc1[diseases]["Std. Error"], type = "html", column.labels=diseases, title="Results", 
-          digits = 4, align = TRUE, out="univariate_regressions.html")
+          digits = 8, align = TRUE, out="univariate_regressions.html")
 
 openFileInOS("univariate_regressions.html")
 
-rm(mbStart, mbEnd, diseases, lm.mb, lm.mb.hc1)
+rm(mbStart, mbEnd, diseases, disease, lm.mb, lm.mb.hc1)
 ```
 
 
@@ -256,7 +254,6 @@ openFileInOS("robust_regression_table_comparisons.html")
 lm.mb1 <- lm(mbDaysIncapacitated ~ distanceToPavedRoad + electricity + income + distanceToNearestTown + writingScore + smokeTobacco, data=df)
 
 summary(lm.mb1)
-summary(lm.mb2)
 
 
 plm.mb1 <- plm(mbDaysIncapacitated ~ distanceToPavedRoad + electricity + income + distanceToNearestTown + writingScore + smokeTobacco, data=df, index = c("id", "year"), model = "within")

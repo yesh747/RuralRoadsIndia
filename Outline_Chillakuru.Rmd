@@ -1,0 +1,231 @@
+---
+title: "The Effects of Road Access on Health Outcomes in Rural India"
+author: "Yeshwant Chillakuru"
+date: "March 8, 2017"
+output:
+  pdf_document: default
+header-includes:
+  - \usepackage{setspace}\doublespacing
+  - \setlength{\parindent}{2em}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# plotting
+library(ggplot2)
+
+# regressions: robust and panel
+library(MASS)
+library(plm)
+library(foreign)
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+# data manipulation
+library(dplyr)
+library(tidyr)
+
+# other
+library(memisc)
+library(pander)
+
+df <- read.csv("ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
+df2005 <- read.csv("ruralHealthAndRoadsOfIndianVillages2005.csv", header = TRUE, row.names = 1)
+df2012 <- read.csv("ruralHealthAndRoadsOfIndianVillages2012.csv", header = TRUE, row.names = 1)
+
+df$districtHospital <- NULL
+```
+
+# Introduction
+
+\qquad Improving transportation infrastructure is vital to India’s long-term economic development. Paved roads are needed to facilitate trade between communities and improve access to markets, schools, and health facilities, especially in rural India, where most of the country’s population lives. In 2000, India began the ongoing rural road expansion program known as Pradhan Mantri Gram Sadak Yojama (PMGSY), which aims to connect 170,000 habitations villages with paved all-weather roads by 2020 with an expected total cost of US$54.6 billion. As of 2010, 72,000 habitations have been connected by paved roads (World Bank, 2010). However, literature examining the efficacy of road improvement on health outcomes in India is sparse, and what literature exists often is plagued by weak methodology. The Ministry of Rural Development in India assessed PMGSY in 2004 and claimed an overwhelmingly positive impact of roads on health outcomes, stating improved travel times, patient satisfaction, and increased hospital visits in several districts. However, the assessment was limited by small sample size and no controls.
+
+The effect of road expansion can lead to unexpected health outcomes. Contrary to intuition, Djemai has shown that HIV morbidity increases as road access increases (2011). Djemai proposes a framework of opposing forces with a negative health effect due to increased risky sexual behavior by high HIV-risk mobile groups overpowering a positive health effect of increased access to HIV education due to roads (2011). This framework can be extended to rural India. Roads may have a positive health effect by increasing access to health centers and proper treatment for diseases like polio, STDs, or tuberculosis. However, roads may also increase likelihood of communication due to increased travel by high risk morbidity groups or exposure to pathogens in non-sterile hospital settings. Additionally, if rural hospitals lack effective treatments or sterile environments, increased road access may not affect health outcomes or may lead to worse outcomes.
+Morbidity rates, which percent of population that has become ill in a fixed time period, is a common measure of assessing health outcomes in the developing world. Using the data from the India Human Development Survey, this study assesses the impact of increased access to paved roads on the incidence of major morbidity in rural India by examining morbidity rates for individual diseases and groups of communicable and non-communicable diseases. 
+
+
+# Literature Review
+
+\qquad The effect of road expansion on health outcomes has recently been studied, but the results so far offer a limited understanding. Bell and van Dillen examined health outcomes after road expansion under PMGSY in upland Orissa, India, using 2010 survey data (2014). The theoretical framework underlying their analysis stated that roads would not alter the disease environment of the villages in the short-term but would improve treatment times and outcomes as patients travel to health centers and ambulances reach patients more easily. They performed a cross-sectional analysis using both univariate and multivariate Tobit models of the 1,292 villagers across 30 villages, 456 of whom lived in one of 11 villages with a paved road. Bell and van Dillen found that roads had no effect on morbidity rates or treatment times. An additional analysis on mortality rates concluded the same null effect of roads. While their analysis was limited to the region of Orissa and their dataset did not allow for a more robust, longitudinal analysis, Bell and van Dillen offered a theoretical framework to approach the lack of improvement of health outcomes. As expected, roads did not change the disease environment in villages, but they failed to improve treatment times and mortality rates, despite survey responses by villages stating they were more likely to use and visit healthcare facilities for treatment. Therefore, rural health services in India may simply be inadequate (2014).
+
+While limited literature exists on road access in rural India, Djemai has performed a robust analysis of roads in Africa. Djemai examined the effect of paved road access on risk of HIV infection in Cameroon, Ethiopia, Ghana, Kenya, Malawi, and Zimbabwe (2011). Djemai found an inverse relationship between distance to paved road and likelihood of HIV infection. This unexpected result can be explained with Djemai’s framework of analysis, which suggested two opposing forces:
+
+  1. Increased road access allows individuals to access markets to purchase condoms and also learn about HIV risks, thus reducing the risk of HIV infection. Djemai demonstrated this effect to be true.
+  2. Increased road access allows for more communicability through both high-risk mobile groups and individuals having more sexual partners, thus increasing risk of HIV infection. Djemai also showed this to be true.
+  
+Djemai’s overall result showed that the latter effect to overpower the former. This theoretical framework can be transferred to the analysis of the effect of roads in rural India, as explained earlier. Djemai’s analysis controlled for a wide variety of factors and also implemented an instrumental variables approach using terrain ruggedness and slope to improve robustness (2011). While the IHDS data lacks latitude and longitude data, preventing a similar IV approach, the IHDS data allows me to both control for individual and community level characteristics and investigate potential causal mechanisms behind the relationship. Djemai’s robust analysis provides an ideal framework, upon which this study can build.
+
+
+# Data Description
+
+\qquad The data used was collected from the India Human Development Survey (IHDS: http://ihds.info), a nationally representative survey of 41,554 households in 1,503 villages and 971 urban neighborhoods in India. IHDS-I was conducted from 2004-2005, and IHDS-II was conducted from 2011-2012. The data of interest for this study was divided into several levels. Health outcomes, such as incidence of diabetes or polio, and individual-level controls, such as education and alcohol consumption, were stored in the individual-level dataset. Household-level controls, such as income and access to electricity, were stored household-level dataset. Road data, such as distance to road, and village-level controls were stored in the village-level dataset. The datasets were all encoded to be mapped together. Each village had an I.D. number. Each household had an I.D. number that was mapped to the village I.D. number. Each individual had an I.D. number that was then mapped to the household and village I.D. numbers. Therefore, data was aggregated to the village level, which had the road data, and as a result, an individual village is the unit of observation. When aggregating data from the specific to the broad (i.e. individual/household to village), the mean was used if data was an interval or ratio variable. If the data was a categorical variable, dummy variables were created for each category and the means of the dummy variables were aggregated to the village level. After data cleaning, the 2005 data (IHDS-I) contained 1501 observations (i.e. unique villages), and the 2012 dataset (IHDS-II) contained 1345 observations. The same indexing was used in both 2005 and 2012, and 1343 villages appeared in both IHDS-I and IHDS-II. Summary statistics are provided below:
+	
+	
+## 2005
+
+```{r summarystats2005, echo=FALSE}
+
+r2005 <- summary(df2005[, c("distanceToPavedRoad", "roadPaved")])
+r2012 <- summary(df2012[, c("distanceToPavedRoad", "roadPaved")])
+
+mbStart <- which(colnames(df) == "mbCataract")
+mbEnd <- which(colnames(df) == "mbDaysIncapacitated")
+
+mb2005 <- summary(df2005[, mbStart:mbEnd])
+mb2012 <- summary(df2012[, mbStart:mbEnd])
+
+
+r2012
+mb2005
+
+
+
+```
+
+
+## 2012
+```{r summarystats2012, echo=FALSE, fig.width=2, tidy=TRUE}
+
+r2005
+mb2012
+
+rm(r2005, r2012, mb2005, mb2012, mbStart, mbEnd)
+
+```
+
+Distance to Paved Road (`distanceToPavedRoad`) is in kilometers and morbidity (`mb…`) is a probability value from 0 to 1, determined by taking the mean of disease prevalence (1 = had the disease in the past year and 0 = did not have the disease in the past year) for all individuals surveyed in a village. Only 43 out of 1345 were missing from the `distanceToPavedRoad` in 2012, and no observations were missing from the health data.
+
+
+## Description of Variables
+### Most of this information will be placed in appendix
+
+\qquad The 76 variables in the dataset are listed below:
+
+```{r variables, tidy=TRUE, echo=FALSE, results='asis'}
+colnames(df)
+```
+
+
+
+Most variables names have been renamed to be self-explanatory. Important notes regarding variables are:
+  * Two additionally variable needs to be constructed:
+    * `mbProbCommDisease` which is the likelihood of having a communicable disease (STD/AIDS, polio, tuberculosis, leprosy)
+    * `mbProbNonCommDisease which is the likelihood of having non-communicable disease (other mb… that do not fall into mbProbCommDisease)
+  * `id` = unique to each village each year. `state` and `district` are id values for state and district village is located in. 
+  * `cost…` in beginning of name indicates the cost in Rupees
+  * `dist…` in beginning of variable name indicates distance in kilometers
+  * `mb…` in beginning of variable name indicates major morbidity disease
+  * `pvt…` and `govt…` indicates private and public sector facility (e.g. `pvtPharm` indicates if the village has a private-sector pharmacy and distPvtPharm indicates the distance to the nearest private-sector pharmacy if the village did not have one in the village).
+  * Variables 41 (`smokeTobacco`) to 48 (`writingScore`) are Individual-level controls
+  * Variables 49 (`caste`) to 66 (`drinkingWaterSource`) are Household-level controls
+    * Caste will be turned into dummy variables for each caste type
+  * Variables 67 (`healthSubCenter`) to 76 (`distOtherGovtMedFacility`) are Village-level controls
+  * Dummy variables for `mbTreatmentWhere1`, `mbTreatmentWhere`, and caste have yet to be created, but will be soon.
+  * `area,` `populationCategories,` and `householdNumbersOf` are missing in the 2012 Dataset. Upon inquiry with IHDS, I discovered they are still filling in these values from the 2011 Indian Census data. If this data is not complete within the next 2 weeks, these variables will be dropped from the dataset. 
+  * R code for data cleaning and analysis can be accessed on Github: https://github.com/yesh747/RuralRoadsIndia
+
+## Graphs: Disease incidence vs Road Distance in 2005 and 2012
+
+```{r graphs, echo=FALSE, tidy=TRUE, fig.height=2, message=FALSE}
+mbStart <- which(colnames(df) == "mbCataract")
+mbEnd <- which(colnames(df) == "mbSTDorAIDS")
+
+diseases <- colnames(df[,mbStart:mbEnd])
+
+for (disease in diseases) {
+  print(ggplot(data=df, aes(x=distanceToPavedRoad, y=df[, disease], color=as.factor(year))) + geom_point(alpha=0.3, na.rm=TRUE) + labs(title = disease))
+}
+
+rm(mbStart, mbEnd, diseases, disease)
+```
+
+The above graphs of all the diseases in the dataset were constructed as part of exploratory data analysis. An inverse relationship between road distance and disease prevalence appears to exist. However, this could be due to a number of factors that have yet to be accounted for. One can also see that there is an overall decrease in the distance to a paved road as we move from 2005 to 2012, an effect confirming the presence of PMGSY’s road expansion program in the sample of surveyed villages.
+
+
+# Model Description
+
+The following OLS linear regression model will be used:
+
+$$diseaseIncidence_{it} = \beta distroad_{it} + \delta_{1} Ind_{it} + \delta_{2} household_{it} + \delta_{3} Village_{it} + \varepsilon_{it}$$
+
+A panel regression will be performed where i is the village and t is the year (i.e. 2005 or 2012). diseaseIncidenceit is the disease of interest. This regression will be conducted for all the separate diseases in the dataset (shown in the above graphs) and for the constructed variables of `mbProbCommDisease` and `mbProbNonCommDisease.` Indit are the individual-level controls, such as the percent of individuals smoking tobacco in the village. householdit are the household-level controls, such as the mean income of the household. Villageit are the village-level controls, such as the number of primary Health Centers in the village. Potentially, the distRoad variable will be transformed to be log(1 + distRoad). This transformation was done by Djemai (2011), to account for non-linear relationship of distance to a paved road on access to medical facilities via travelling (e.g. individuals will be indifferent to travel if the distance to paved road changes from 50km to 20km, but if the distance to paved road changes from 10km to 5km, then individuals will be more likely to travel).
+
+Simultaneous causality may present a problem in the current model. Individuals may move to areas where roads are built to improve economic opportunities. This may increase risk of communicability, similar to Djemai’s study, where high-risk mobile groups increased HIV risk in areas closer to roads. Performing separate regressions on communicable vs non-communicable diseases would allow us to isolate the impact of increased communicability on disease incidence. For example, if road access is bringing high-risk groups, who partake in risky sexual behavior, STD/HIV incidence would increase, while non-communicable diseases, like mental illness would not be effected. Additionally, to control for road-induced migration, the data can be subsetted for people who have lived in the current village for over 7 years. This means that they would partake in both the 2005 and 2012 surveys.
+	
+	Another issue with simultaneous causality is that villages with higher incomes and larger populations could be more likely to receive roads. Therefore, road placement may not be random. The PMGSY program is run at the national, and not state or district, level, and is less prone to influence of local village-level politics. However, if road expansion spreads from developed urban to less-developed rural areas, non-random road placement is still a concern. To ensure robustness, the relationship of income and village population on improved road access from 2005 to 2012 can be assessed separately by univariate regression. If a significant relationship exists between either income and roads or population and roads, the villages can be separated into separate income and population brackets, and the original regression model can be applied to each subset of villages to check for robustness.
+
+
+# Expected Results
+
+\qquad	Djemai found distance to paved road in Africa to be inversely correlated with communicable diseases, such as STD/AIDS, polio, tuberculosis, or leprosy, and to be positively correlated with non-communicable diseases (2011). However, Bell and Van Dillen found that roads in rural India had no effect on morbidity or mortality, potentially due to the insufficient healthcare services provided in rural India (2014). I quickly conducted univariate and multivariate fixed effects panel regressions of road distance on various disease types.
+
+## Univariate Regression Results
+
+```{r reg1, echo=FALSE}
+mbStart <- which(colnames(df) == "mbCataract")
+mbEnd <- which(colnames(df) == "mbSTDorAIDS")
+
+diseases <- colnames(df[,mbStart:mbEnd])
+
+lm.mb <- list()
+lm.mb.hc1 <- list()
+for (disease in diseases) {
+  lm.mb[disease] <- list(lm(df[,disease] ~ distanceToPavedRoad, data=df))
+  
+  # generate robust standard errors
+  lm.mb.hc1[disease] <- list(coeftest(lm.mb[[disease]], function(x) vcovHC(x, type="HC1")))
+}
+
+stargazer(lm.mb[diseases[1:4]], se=lm.mb.hc1[diseases[1:4]]["Std. Error"], type = "text", column.labels=diseases, title="Results", digits = 8, align = TRUE)
+
+stargazer(lm.mb[diseases[5:8]], se=lm.mb.hc1[diseases[5:8]]["Std. Error"], type = "text", column.labels=diseases, title="Results", digits = 8, align = TRUE)
+
+stargazer(lm.mb[diseases[9:13]], se=lm.mb.hc1[diseases[9:13]]["Std. Error"], type = "text", column.labels=diseases, title="Results", digits = 8, align = TRUE)
+
+rm(mbStart, mbEnd, diseases, disease, lm.mb, lm.mb.hc1)
+```
+
+
+## Multivariate FE Panel Regression Results
+```{r reg2, echo=FALSE}
+mbStart <- which(colnames(df) == "mbCataract")
+mbEnd <- which(colnames(df) == "mbSTDorAIDS")
+
+diseases <- colnames(df[,mbStart:mbEnd])
+
+plm.mb <- list()
+plm.mb.hc1 <- list()
+for (disease in diseases) {
+  plm.mb[disease] <- list(plm(df[,disease] ~ distanceToPavedRoad + electricity + income + distanceToNearestTown + writingScore + smokeTobacco, data=df, index = c("id", "year"), model = "within"))
+  
+  # generate robust standard errors
+  plm.mb.hc1[disease] <- list(coeftest(plm.mb[[disease]], function(x) vcovHC(x, type="HC1")))
+}
+
+stargazer(plm.mb[diseases[1:4]], se=plm.mb.hc1[diseases[1:4]]["Std. Error"], type = "text", column.labels=diseases, title="Results", digits = 8, align = TRUE)
+
+stargazer(plm.mb[diseases[5:8]], se=plm.mb.hc1[diseases[5:8]]["Std. Error"], type = "text", column.labels=diseases, title="Results", digits = 8, align = TRUE)
+
+stargazer(plm.mb[diseases[9:13]], se=plm.mb.hc1[diseases[9:13]]["Std. Error"], type = "text", column.labels=diseases, title="Results", digits = 8, align = TRUE)
+
+rm(mbStart, mbEnd, diseases, plm.mb, plm.mb.hc1)
+```
+
+
+From the univariate results, only the non-communicable diseases appeared to have a statistically significant negative relationship between disease probability and road type. For example, a one kilometer increase in road distance results in a 0.05% decrease in the percentage of individuals in a village that have cataracts. However, when controlling for electricity access, income, distance to nearest down, writing ability, and tobacco smoking habits, this significance is lost. To understand these results better, a more robust analysis must be conducted controlling for more factors, such as differences in medical facilities, which is possible given the IHDS data. Djemai offers a robust example of which factors to control for in his regression model (2011). Additionally, as explained before, transforming road distance to log(1 + roadDistance) may account for the non-linear relationship between road distance in the next regression analysis. If the relationship between road distance and health outcomes remains insignificant, then potentially healthcare centers are such low quality that increasing access confers no health advantage. I can investigate this by examining the type of medical facilities sick people visit, how long they stay there, and how long they remain too sick to function. This secondary analysis can offer a deeper insight into whether roads are increasing access to health facilities and whether these health facilities are improving patient outcomes.
+
+#References
+
+Bell, Clive and Susanne van Dillen (2014). “How Does India’s Rural Road Program Affect the Grassroots? Findings from a Survey in Upland Orissa.” Land Economics 90(2): 372-394. https://www.researchgate.net/publication/254456306_How_Does_India's_Rural_Roads_Program_Affect_the_Grassroots_Findings_from_a_Survey_in_Upland_Orissa.
+
+Djemai, Elodie (2011). “HIV and Access to Road.” Working Paper. http://www.ipc.umich.edu/pdf/Djema-HIV-Access-to-Road.pdf.
+
+Ministry of Rural Development, Government of India (2004). Impact Assessment of Pradhan Mantri Gram Sadak Yojana: http://pmgsy.nic.in/pmg122.asp.
+
+World Bank (2010). Project Appraisal Document. Report No. 570810-IN: http://documents.worldbank.org/curated/en/879581468041646928/pdf/570810PAD0P1241e0only1910BOX353794B.pdf.
+
+
+
+
