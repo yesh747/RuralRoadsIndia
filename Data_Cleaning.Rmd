@@ -373,7 +373,7 @@ VilInd2012 <- rename(VilInd2012, c("Group.1" = "id", "TO4"="smokeTobacco", "TO5"
 df2005 <- merge(df2005, VilInd2005, by="id")
 df2012 <- merge(df2012, VilInd2012, by="id")
 
-rm(TO2005begin, TO2005end, TO2012begin, TO2012end, SC2005begin, SC2005end, SC2012begin, SC2012end, LM2005begin, LM2005end, LM2012begin, LM2012end, VilInd2005, VilInd2012, IND2005, IND2012)
+rm(TO2005begin, TO2005end, TO2012begin, TO2012end, SC2005begin, SC2005end, SC2012begin, SC2012end, LM2005begin, LM2005end, LM2012begin, LM2012end, VilInd2005, VilInd2012)
 
 ```
 
@@ -448,7 +448,7 @@ df2005 <- merge(df2005, VilInd2005, by="id")
 df2012 <- merge(df2012, VilInd2012, by="id")
 
 ## clean workspace
-rm(HH2005Controls, HH2012Controls, VilInd2005, VilInd2012, HH2005, HH2012)
+rm(HH2005Controls, HH2012Controls, VilInd2005, VilInd2012)
 
 # Remove Repeat Data
 
@@ -497,6 +497,103 @@ rm(VIL2005, VIL2012, medicalFacilityVariables2005, medicalFacilityRename2005, me
 ```
 
 
+# 7. Create dummy variables for Categorical Variables for caste, mbTreatmentWho1, mbTreatmentWhere1, mbTreatmentWho2, mbTreatmentWhere2
+```{r dummyVariables}
+
+# 0. Drop Cat Variables from cleaned dataframes that will be dummified
+dropping <- c("caste", "drinkingWaterSource", "mbTreatmentWho1", "mbTreatmentWhere1", "mbTreatmentWho2", "mbTreatmentWhere2")
+df2005[ ,dropping] <- NULL
+df2012[ ,dropping] <- NULL
+
+
+
+# 1. creat2 dataframe with categorical variables of interest
+catVarsHH2005 <- data.frame(HH2005[,c("id", "ID13", "WA1")])
+catVarsHH2012 <- data.frame(HH2012[,c("id", "ID13", "WA1A")])
+
+catVarsIND2005 <- data.frame(IND2005[,c("id", "mb19_1", "mb20_1", "mb19_2", "mb20_2")])
+catVarsIND2012 <- data.frame(IND2012[,c("id", "MB21A", "MB21B", "MB22A", "MB22B")])
+  
+# 2. convert variables to factor type
+catVarsHH2005 <- data.frame(lapply(catVarsHH2005, factor))
+catVarsHH2012 <- data.frame(lapply(catVarsHH2012, factor))
+
+catVarsIND2005 <- data.frame(lapply(catVarsIND2005, factor))
+catVarsIND2012 <- data.frame(lapply(catVarsIND2012, factor))
+
+# 3. Create Dummy Variables
+catVarsHH2005 <- dummy.data.frame(catVarsHH2005, names=c("ID13", "WA1"), sep=".")
+catVarsHH2012 <- dummy.data.frame(catVarsHH2012, names=c("ID13", "WA1A"), sep=".")
+
+catVarsIND2005 <- dummy.data.frame(catVarsIND2005, names=c("mb19_1", "mb20_1", "mb19_2", "mb20_2"), sep=".")
+catVarsIND2012 <- dummy.data.frame(catVarsIND2012, names=c("MB21A", "MB21B", "MB22A", "MB22B"), sep=".")
+
+# 4. Rename Dummy Variables
+catVarsHH2005 <- rename(catVarsHH2005, c("ID13.1"="caste.Brahmin", "ID13.2"="caste.OBC", "ID13.3"="caste.SC", "ID13.4"="caste.ST", "ID13.5"="caste.Other", "WA1.1"="drinkingWaterSource.Piped", "WA1.2"="drinkingWaterSource.TubeWell", "WA1.3"="drinkingWaterSource.HandPump", "WA1.4"="drinkingWaterSource.OpenWell", "WA1.5"="drinkingWaterSource.CoveredWell", "WA1.6"="drinkingWaterSource.River", "WA1.7"="drinkingWaterSource.Pond", "WA1.8"="drinkingWaterSource.Truck", "WA1.9"="drinkingWaterSource.RainWater", "WA1.10"="drinkingWaterSource.Bottled", "WA1.11"="drinkingWaterSource.Other", "WA1.NA"="drinkingWaterSource.NA"))
+
+## Fix inconsistencies between 2005 and 2012
+### 2012 adds extra categories "NA" (ID13.NA) and "Forward/General" (ID13.2). 2005 lumps these in with "Other" (ID.13.6)
+catVarsHH2012$ID13.6 <- rowSums(catVarsHH2012[, c("ID13.NA", "ID13.2","ID13.6")])
+catVarsHH2012[, c("ID13.NA","ID13.2")] <- NULL
+catVarsHH2012$ID13.6 <- ifelse(catVarsHH2012$ID13.6 > 0, 1, 0)
+
+catVarsHH2012 <- rename(catVarsHH2012, c("ID13.1"="caste.Brahmin", "ID13.3"="caste.OBC", "ID13.4"="caste.SC", "ID13.5"="caste.ST", "ID13.6"="caste.Other", "WA1A.1"="drinkingWaterSource.Piped", "WA1A.2"="drinkingWaterSource.TubeWell", "WA1A.3"="drinkingWaterSource.HandPump", "WA1A.4"="drinkingWaterSource.OpenWell", "WA1A.5"="drinkingWaterSource.CoveredWell", "WA1A.6"="drinkingWaterSource.River", "WA1A.7"="drinkingWaterSource.Pond", "WA1A.8"="drinkingWaterSource.Truck", "WA1A.9"="drinkingWaterSource.RainWater", "WA1A.10"="drinkingWaterSource.Bottled", "WA1A.11"="drinkingWaterSource.Other", "WA1A.NA"="drinkingWaterSource.NA"))
+
+catVarsIND2005 <- rename(catVarsIND2005, c("mb19_1.0"="mbTreatmentWho1.NA", "mb19_1.1"="mbTreatmentWho1.PublicDoc", "mb19_1.2"="mbTreatmentWho1.PublicDocInPvt", "mb19_1.3"="mbTreatmentWho1.PvtDoc", "mb19_1.4"="mbTreatmentWho1.Pharm", "mb19_1.5"="mbTreatmentWho1.OtherOrTraditional", "mb19_2.0"="mbTreatmentWho2.NA", "mb19_2.1"="mbTreatmentWho2.PublicDoc", "mb19_2.2"="mbTreatmentWho2.PublicDocInPvt", "mb19_2.3"="mbTreatmentWho2.PvtDoc", "mb19_2.4"="mbTreatmentWho2.Pharm", "mb19_2.5"="mbTreatmentWho2.OtherOrTraditional", "mb20_1.0"="mbTreatmentWhere1.NA", "mb20_1.1"="mbTreatmentWhere1.SameVillage", "mb20_1.2"="mbTreatmentWhere1.AnotherVillage", "mb20_1.3"="mbTreatmentWhere1.OtherTown", "mb20_1.4"="mbTreatmentWhere1.DistrictTown", "mb20_2.0"="mbTreatmentWhere2.NA", "mb20_2.1"="mbTreatmentWhere2.SameVillage", "mb20_2.2"="mbTreatmentWhere2.AnotherVillage", "mb20_2.3"="mbTreatmentWhere2.OtherTown", "mb20_2.4"="mbTreatmentWhere2.DistrictTown"))
+
+
+## fix inconsistencies between 2005 and 2012 --> 2012 needs to fit in the scope of the limiting 2005 dataset
+### MB21A/MB22A.5,.6,.7 are all "mbTreatmentWho1/2.OtherOrTraditional"
+catVarsIND2012$MB21A.5 <- rowSums(catVarsIND2012[, c("MB21A.5", "MB21A.6","MB21A.7")])
+catVarsIND2012[, c("MB21A.6","MB21A.7")] <- NULL
+catVarsIND2012$MB21A.5 <- ifelse(catVarsIND2012$MB21A.5 > 0, 1, 0)
+
+catVarsIND2012$MB22A.5 <- rowSums(catVarsIND2012[, c("MB22A.5", "MB22A.6","MB22A.7")])
+catVarsIND2012[, c("MB22A.6","MB22A.7")] <- NULL
+catVarsIND2012$MB22A.5 <- ifelse(catVarsIND2012$MB22A.5 > 0, 1, 0)
+
+### MB21B/MB22B.1 and .2 are both "mbTreatmentWhere1/2.SameVillage"
+catVarsIND2012$MB21B.1 <- rowSums(catVarsIND2012[, c("MB21B.1", "MB21B.2")])
+catVarsIND2012[, c("MB21B.2")] <- NULL
+catVarsIND2012$MB21B.1 <- ifelse(catVarsIND2012$MB21B.1 > 0, 1, 0)
+
+catVarsIND2012$MB22B.1 <- rowSums(catVarsIND2012[, c("MB22B.1", "MB22B.2")])
+catVarsIND2012[, c("MB22B.2")] <- NULL
+catVarsIND2012$MB22B.1 <- ifelse(catVarsIND2012$MB22B.1 > 0, 1, 0)
+
+### MB21B/MB22B.4,.6,.7 are all "other town"
+catVarsIND2012$MB21B.4 <- rowSums(catVarsIND2012[, c("MB21B.4", "MB21B.6", "MB21B.7")])
+catVarsIND2012[, c("MB21B.6", "MB21B.7")] <- NULL
+catVarsIND2012$MB21B.4 <- ifelse(catVarsIND2012$MB21B.4 > 0, 1, 0)
+
+catVarsIND2012$MB22B.4 <- rowSums(catVarsIND2012[, c("MB22B.4", "MB22B.6", "MB22B.7")])
+catVarsIND2012[, c("MB22B.6", "MB22B.7")] <- NULL
+catVarsIND2012$MB22B.4 <- ifelse(catVarsIND2012$MB22B.4 > 0, 1, 0)
+
+catVarsIND2012 <- rename(catVarsIND2012, c("MB21A.0"="mbTreatmentWho1.NA", "MB21A.1"="mbTreatmentWho1.PublicDoc", "MB21A.2"="mbTreatmentWho1.PublicDocInPvt", "MB21A.3"="mbTreatmentWho1.PvtDoc", "MB21A.4"="mbTreatmentWho1.Pharm", "MB21A.5"="mbTreatmentWho1.OtherOrTraditional", "MB22A.0"="mbTreatmentWho2.NA", "MB22A.1"="mbTreatmentWho2.PublicDoc", "MB22A.2"="mbTreatmentWho2.PublicDocInPvt", "MB22A.3"="mbTreatmentWho2.PvtDoc", "MB22A.4"="mbTreatmentWho2.Pharm", "MB22A.5"="mbTreatmentWho2.OtherOrTraditional", "MB21B.0"="mbTreatmentWhere1.NA", "MB21B.1"="mbTreatmentWhere1.SameVillage", "MB21B.3"="mbTreatmentWhere1.AnotherVillage", "MB21B.4"="mbTreatmentWhere1.OtherTown", "MB21B.5"="mbTreatmentWhere1.DistrictTown", "MB22B.0"="mbTreatmentWhere2.NA", "MB22B.1"="mbTreatmentWhere2.SameVillage", "MB22B.3"="mbTreatmentWhere2.AnotherVillage", "MB22B.4"="mbTreatmentWhere2.OtherTown", "MB22B.5"="mbTreatmentWhere2.DistrictTown"))
+
+# 5. Aggregate dataframes to village level (by=list("id"))
+catVarsHH2005 <- aggregate(catVarsHH2005[,2:dim(catVarsHH2005)[2]], by=list(catVarsHH2005$id), FUN=mean, na.rm=TRUE)
+catVarsHH2012 <- aggregate(catVarsHH2012[,2:dim(catVarsHH2012)[2]], by=list(catVarsHH2012$id), FUN=mean, na.rm=TRUE)
+catVarsIND2005 <- aggregate(catVarsIND2005[,2:dim(catVarsIND2005)[2]], by=list(catVarsIND2005$id), FUN=mean, na.rm=TRUE)
+catVarsIND2012 <- aggregate(catVarsIND2012[,2:dim(catVarsIND2012)[2]], by=list(catVarsIND2012$id), FUN=mean, na.rm=TRUE)
+
+# 6. Merge HH and IND
+catVars2005 <- merge(catVarsHH2005, catVarsIND2005, by="Group.1")
+catVars2012 <- merge(catVarsHH2012, catVarsIND2012, by="Group.1")
+
+# 7. Rename "Group.1" to "id"
+catVars2005 <- rename(catVars2005, c("Group.1"="id"))
+catVars2012 <- rename(catVars2012, c("Group.1"="id"))
+
+# 8. Merge Dataframes to main dataset
+df2005 <- merge(df2005, catVars2005, by="id")
+df2012 <- merge(df2012, catVars2012, by="id")
+
+rm(dropping, HH2005, IND2005, HH2012, IND2012, catVarsIND2012, catVarsIND2005, catVarsHH2005, catVarsHH2012, catVars2005, catVars2012)
+```
+
+
 ## Export data to .csv files
 ```{r exportCleanedData}
 df <- rbind(df2005, df2012)
@@ -511,6 +608,9 @@ numberOfCommonVillages <- dim(merge(df2005, df2012, by="id"))[1]
 numberOfCommonVillages
 
 # df <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
+# df2005 <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages2005.csv", header = TRUE, row.names = 1)
+# df2012 <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages2012.csv", header = TRUE, row.names = 1)
+
 rm(df, df2005, df2012, numberOfCommonVillages)
 ```
 
@@ -526,29 +626,6 @@ rm(df, df2005, df2012, numberOfCommonVillages)
   * add gov't programs at village level
     * National Rural Health Mission
   * individual immunization information
-
-# TO FIX
-  * Clean data for negative values and replace negative values with NA.
-  * mbTreatmentWho1,2
-    * currently mean is calculated, create dummy variable for each cat
-  * mbTreatmentWhere1,2
-    * currently mean is calculated, create dummy variable for each cat
-  * caste
-    * currently mean is calculated, create dummy variable for each cat
-  * drinkingWaterSource
-    * currently mean is calculated, create dummy variable for each cat
-  * Redo rename function using dplyr package for consistency
-    
-# HOW TO CREATE DUMMY VARIABLES
-  * 1. Create dataframe with CatVars of interest and id
-      * test <- data.frame(IND2005[, c("id","sm13a1")])
-  * 2. Convert variables to factor type
-      * test[,c("sm13a1")] <- as.factor(test[,c("sm13a1")])
-  * 3. Create dummy variables
-      * test <- dummy.data.frame(test, names=c("sm13a1"), sep = ".")
-  * 4. Rename dummy variables
-      * test <- rename(test, c("test"="smTreatmentWho1.Doctor"))
-  * 5. Merge dataframe to main dataset
 
 
 
