@@ -18,7 +18,7 @@ library(stringr)
 library(dummies)
 ```
 
-## Load Data
+# Load Data
 ```{r loadData}
 
 ## Load medical data
@@ -75,7 +75,7 @@ HH2012$id <- paste((as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2012$STATEID)
 
 # Creating new dataframe from raw survey datasets
 
-## 1. Add village road data
+# 1. Add village road data
 ```{r villageRoadData}
 
 # 1. Create two seperate dataframe for 2005 and 2012. Will merge at the end using rbind.
@@ -126,9 +126,16 @@ df2012$roadPaved <- as.numeric(sub("\\).*", "", sub(".*\\(", "", df2012$roadPave
 df2012$roadMonsoonUsability <- as.numeric(sub("\\).*", "", sub(".*\\(", "", df2012$roadMonsoonUsability)))
 df2012$roadPaved <- ifelse(df2012$roadPaved == 1, 1, 0)
 
+
+# Drop observations where distanceToPavedRoad < 0 --> 41 observations dropped
+df2005 <- df2005[df2005$distanceToPavedRoad >= 0,]
+
+# 5. Transfor distanceToPavedRoad to ln(1+distanceToPavedRoad)
+df2005$lnDistanceToPavedRoad <- log(1 + df2005$distanceToPavedRoad)
+df2012$lnDistanceToPavedRoad <- log(1 + df2012$distanceToPavedRoad)
 ```
 
-## 2. Add village control data
+# 2. Add village control data
 ```{r villageControl Data}
 
 # Create variables with mean daily agriculture and non-agricultural wage for men, women, and children (<15 years old).
@@ -240,7 +247,7 @@ df2012 <- df2012[!duplicated(df2012$id),]
 ```
 
 
-## 3. Add Average Individual Major Morbidity Data to df2005 and df2012
+# 4. Add Average Individual Major Morbidity Data to df2005 and df2012
 ```{r individualHealthDataMM}
 
 # Average Individual Major Morbidity for each village
@@ -248,19 +255,31 @@ df2012 <- df2012[!duplicated(df2012$id),]
   ## 2005
 
 MB2005begin <- which(colnames(IND2005) == "mb2")
+MB2005DiseaseEnd <- which(colnames(IND2005) == "mb15")
 MB2005end <- which(colnames(IND2005) == "mb25")
 
 # replace values less than 0 (survey error values) with 0, and replace NAs with 0. Purpose to normalize data with 2012 data which uses 0, rather than NA as default.
 IND2005[, MB2005begin: MB2005end] <- lapply(IND2005[, MB2005begin: MB2005end], function(x) replace(x, x %in% -7:-1, NA))
 IND2005[, MB2005begin: MB2005end] <- lapply(IND2005[, MB2005begin: MB2005end], function(x) replace(x, x %in% NA, 0))
 
-VilInd2005 <- aggregate(IND2005[, MB2005begin: MB2005end], by = list(IND2005$id), FUN = mean, na.rm = TRUE)
+# Create new column that == 1 if a villager has any disease and 0 otherwise
+for(i in MB2005begin:MB2005DiseaseEnd) {
+  IND2005$mbAnyDisease  <- ifelse(IND2005[, i] > 0, 1, 0)
+}
+
+VilInd2005 <- aggregate(IND2005[, c(MB2005begin:MB2005end)], by = list(IND2005$id), FUN = mean, na.rm = TRUE)
+VilInd2005$mbAnyDiseaseTEMP <-aggregate(IND2005$mbAnyDisease, by = list(IND2005$id), FUN = mean, na.rm = TRUE)
+VilInd2005$mbAnyDisease <- VilInd2005$mbAnyDiseaseTEMP$x
+VilInd2005$mbAnyDiseaseTEMP <- NULL
+
+
 VilInd2005 <- rename(VilInd2005, c("Group.1" = "id", "mb2" = "mbCataract", "mb3" = "mbTuberculosis", "mb4" = "mbHighBP", "mb5" = "mbHeartDisease", "mb6" = "mbDiabetes", "mb7" = "mbLeprosy", "mb8" = "mbCancer", "mb9" = "mbAsthma", "mb10" = "mbPolio", "mb11" = "mbParalysis","mb12"="mbEpilepsy" ,"mb13" = "mbMentalIllness", "mb14" = "mbSTDorAIDS", "mb15" = "mbOtherLongTerm", "mb16" = "mbDaysIncapacitated", "mb17" = "mbTreatmentRecieved", "mb19_1" = "mbTreatmentWho1", "mb20_1" = "mbTreatmentWhere1", "mb19_2" = "mbTreatmentWho2", "mb20_2" = "mbTreatmentWhere2", "mb21" = "mbDaysHospitalized", "mb22" = "mbCostOfTreatment", "mb23" = "mbCostIncludesMedication", "mb24" = "mbCostOfMeds", "mb25" = "mbTravelExpenses"))
 df2005 <- merge(df2005, VilInd2005, by="id")
 
   ## 2012
 
 MB2012begin <- which(colnames(IND2012) == "MB3")
+MB2012DiseaseEnd <- which(colnames(IND2012) == "MB17")
 MB2012end <- which(colnames(IND2012) == "MB28")
   # convert weird strings of "(1) Yes 1" to numType of "1"
 IND2012$MB3 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB3)))
@@ -290,7 +309,16 @@ IND2012$MB26 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB26)))
 IND2012[, MB2012begin: MB2012end] <- lapply(IND2012[, MB2012begin: MB2012end], function(x) replace(x, x %in% -7:-1, NA))
 IND2012[, MB2012begin: MB2012end] <- lapply(IND2012[, MB2012begin: MB2012end], function(x) replace(x, x %in% NA, 0))
 
+# Create new column that == 1 if a villager has any disease and 0 otherwise
+for(i in MB2012begin:MB2012DiseaseEnd) {
+  IND2012$mbAnyDisease  <- ifelse(IND2012[, i] > 0, 1, 0)
+}
+
+
 VilInd2012 <- aggregate(IND2012[, MB2012begin:MB2012end], by = list(IND2012$id), FUN = mean, na.rm = TRUE)
+VilInd2012$mbAnyDiseaseTEMP <-aggregate(IND2012$mbAnyDisease, by = list(IND2012$id), FUN = mean, na.rm = TRUE)
+VilInd2012$mbAnyDisease <- VilInd2012$mbAnyDiseaseTEMP$x
+VilInd2012$mbAnyDiseaseTEMP <- NULL
 
 # drop data not in 2005 survey
 VilInd2012[, c("MB16","MB23")] <- NULL
@@ -299,7 +327,7 @@ VilInd2012 <- rename(VilInd2012, c("Group.1" = "id", "MB3" = "mbCataract", "MB4"
 df2012 <- merge(df2012, VilInd2012, by="id")
 
 
-rm(MB2005begin, MB2005end, MB2012begin, MB2012end, VilInd2005, VilInd2012)
+rm(MB2005begin, MB2005DiseaseEnd, MB2005end, MB2012begin, MB2012end, MB2012DiseaseEnd, VilInd2005, VilInd2012, i)
 
 
 # Remove Repeat Data
@@ -309,7 +337,26 @@ df2012 <- df2012[!duplicated(df2012$id),]
 ```
 
 
-## 4. Add in individual controls to df2005 and df2012
+# 5. Multiply Disease indicence variables by 100 to "convert" from probablity to percentage of villagers with disease for ease of interpretations
+```{r diseasesReinterpretVariables}
+
+#2005
+startDis <- which(colnames(df2005) == "mbCataract")
+endDis <- which(colnames(df2005) == "mbOtherLongTerm")
+df2005[, startDis:endDis] = df2005[, startDis:endDis]*100
+df2005$mbAnyDisease = df2005$mbAnyDisease*100
+df2005$mbCostIncludesMedication = df2005$mbCostIncludesMedication*100
+
+#2012
+startDis <- which(colnames(df2012) == "mbCataract")
+endDis <- which(colnames(df2012) == "mbOtherLongTerm")
+df2012[, startDis:endDis] = df2012[, startDis:endDis]*100
+df2012$mbCostIncludesMedication = df2012$mbCostIncludesMedication*100
+
+rm(startDis, endDis)
+```
+
+# 6. Add in individual controls to df2005 and df2012
 ```{r individualHealthControls}
 
 #2005 -------------------------------------------
@@ -377,7 +424,7 @@ rm(TO2005begin, TO2005end, TO2012begin, TO2012end, SC2005begin, SC2005end, SC201
 
 ```
 
-## 5. Add in household controls to df2005 and df2012
+# 7. Add in household controls to df2005 and df2012
 ```{r householdControls}
 # 1. Decide which variables to add
 ## --------
@@ -422,6 +469,15 @@ HH2012Controls <- c("URBAN2011", "INCOME", "ID13", "ID15", "SA4", "FU1", "FU1A",
 HH2005[,HH2005Controls] <- lapply(HH2005[, HH2005Controls], function(x) replace(x, x %in% -7:-1, NA))
 HH2012[,HH2012Controls] <- lapply(HH2012[, HH2012Controls], function(x) replace(x, x %in% -7:-1, NA))
 
+#convert owning toilet from categorical to binary
+HH2005$SA4 <- ifelse(HH2005$SA4 > 0, 1, 0)
+HH2012$SA4 <- ifelse(HH2012$SA4 > 0, 1, 0)
+
+
+
+```
+
+```{r}
 # 3. Extract values from 2005 and 2012 data cause of its dumb format
 HH2005$URBAN <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$URBAN)))
 HH2005$ID13 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$ID13)))
@@ -447,6 +503,10 @@ VilInd2012 <- rename(VilInd2012, c("Group.1"="id", "URBAN2011"="urban", "INCOME"
 df2005 <- merge(df2005, VilInd2005, by="id")
 df2012 <- merge(df2012, VilInd2012, by="id")
 
+#7. Convert probablities to percentages
+df2005$electricity <- df2005$electricity*100
+df2012$electricity <- df2012$electricity*100
+
 ## clean workspace
 rm(HH2005Controls, HH2012Controls, VilInd2005, VilInd2012)
 
@@ -454,10 +514,9 @@ rm(HH2005Controls, HH2012Controls, VilInd2005, VilInd2012)
 
 df2005 <- df2005[!duplicated(df2005$id),]
 df2012 <- df2012[!duplicated(df2012$id),]
-
 ```
 
-## 6. Add in Medical Facility Data
+# 8. Add in Medical Facility Data
 ```{r medFacilityData}
 
 # 1. Identify variables number of medical facilities.
@@ -497,7 +556,7 @@ rm(VIL2005, VIL2012, medicalFacilityVariables2005, medicalFacilityRename2005, me
 ```
 
 
-# 7. Create dummy variables for Categorical Variables for caste, mbTreatmentWho1, mbTreatmentWhere1, mbTreatmentWho2, mbTreatmentWhere2
+# 9. Create dummy variables for Categorical Variables for caste, mbTreatmentWho1, mbTreatmentWhere1, mbTreatmentWho2, mbTreatmentWhere2
 ```{r dummyVariables}
 
 # 0. Drop Cat Variables from cleaned dataframes that will be dummified
@@ -594,7 +653,7 @@ rm(dropping, HH2005, IND2005, HH2012, IND2012, catVarsIND2012, catVarsIND2005, c
 ```
 
 
-## Export data to .csv files
+# Export data to .csv files
 ```{r exportCleanedData}
 df <- rbind(df2005, df2012)
 
@@ -607,18 +666,26 @@ write.csv(df2012, file = "ruralHealthAndRoadsOfIndianVillages2012.csv")
 numberOfCommonVillages <- dim(merge(df2005, df2012, by="id"))[1]
 numberOfCommonVillages
 
-# df <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
+df <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
 # df2005 <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages2005.csv", header = TRUE, row.names = 1)
 # df2012 <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages2012.csv", header = TRUE, row.names = 1)
-
 rm(df, df2005, df2012, numberOfCommonVillages)
 ```
 
-
+# TO FIX:
+ * Convert mbTreatmentWho1,2 and mbTreatmentWhere1,2 to percentage
+ * Convert castes to percentages
+ * Convert drinkingWater to percentages
+ * Create infectious and non-infectious disease variables for village level
+ * Use ED2/4 instead of TAs for education variables
 
 # NOTES
  * Area, Population, and num of HH is missing from 2012 village data
-
+ * Smoking, drinking variables only exist in <10% of the *individual-level* observations
+ * reading, writing, math, and school variables only exist in <10% of the *individual-level* observations --> because only reported for children at individual level
+   * ED2/4 instead of TA3/4 would be better variable because ED2/4 is for all household members -- > 95% response rates
+ * mbTreatmentWho/Where1,2 are missing 90% and 95% of data --> likely because only reported for those who chose to recieve treatment
+ 
 # QUESTIONS
 
  
