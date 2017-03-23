@@ -233,7 +233,6 @@ mtableMulti2 <- mtable(
             summary.stats = c('R-squared','adj. R-squared','F','p','N'))
 
 mtableMulti2
-
 rm(mtableMulti2)
 ```
 
@@ -295,6 +294,13 @@ rm(plm.mb1, plm.mb1.hc1, plm.mb2, plm.mb2.hc1)
       * **Can differences in differences method be used?**
       * Use roadPaved as Treatment
   * Granger Test for determining simultaneous causality?
+  
+  
+# Questions
+  * If using state-fixed and time-fixed effects for each village, do I really need all these controls?
+  * Can I do a differences-in-differences? <- potentially do for paved vs unpaved
+  * What controls should I include and what shouldn't? Should I be worried about "controlling away" the actual effect?
+    
  
  
  

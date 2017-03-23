@@ -129,10 +129,13 @@ df2012$roadPaved <- ifelse(df2012$roadPaved == 1, 1, 0)
 
 # Drop observations where distanceToPavedRoad < 0 --> 41 observations dropped
 df2005 <- df2005[df2005$distanceToPavedRoad >= 0,]
+if (3 != 1){
+  print('true')
+}
 
-# 5. Transfor distanceToPavedRoad to ln(1+distanceToPavedRoad)
-df2005$lnDistanceToPavedRoad <- log(1 + df2005$distanceToPavedRoad)
-df2012$lnDistanceToPavedRoad <- log(1 + df2012$distanceToPavedRoad)
+# 5. Transfor distanceToPavedRoad to ln(distanceToPavedRoad) only when value != 0
+df2005$lnDistanceToPavedRoad <- ifelse(df2005$distanceToPavedRoad != 0, log(df2005$distanceToPavedRoad), 0)
+df2012$lnDistanceToPavedRoad <- ifelse(df2012$distanceToPavedRoad != 0, log(df2012$distanceToPavedRoad), 0)
 ```
 
 # 2. Add village control data
@@ -555,7 +558,6 @@ rm(VIL2005, VIL2012, medicalFacilityVariables2005, medicalFacilityRename2005, me
 
 ```
 
-
 # 9. Create dummy variables for Categorical Variables for caste, mbTreatmentWho1, mbTreatmentWhere1, mbTreatmentWho2, mbTreatmentWhere2
 ```{r dummyVariables}
 
@@ -645,7 +647,11 @@ catVars2012 <- merge(catVarsHH2012, catVarsIND2012, by="Group.1")
 catVars2005 <- rename(catVars2005, c("Group.1"="id"))
 catVars2012 <- rename(catVars2012, c("Group.1"="id"))
 
-# 8. Merge Dataframes to main dataset
+# 8. Convert variables from probabilities to percentages
+catVars2005[,2:dim(catVars2005)[2]] <- catVars2005[,2:dim(catVars2005)[2]]*100
+catVars2012[,2:dim(catVars2012)[2]] <- catVars2012[,2:dim(catVars2012)[2]] *100
+
+# 9. Merge Dataframes to main dataset
 df2005 <- merge(df2005, catVars2005, by="id")
 df2012 <- merge(df2012, catVars2012, by="id")
 
@@ -655,27 +661,24 @@ rm(dropping, HH2005, IND2005, HH2012, IND2012, catVarsIND2012, catVarsIND2005, c
 
 # Export data to .csv files
 ```{r exportCleanedData}
-df <- rbind(df2005, df2012)
+df1 <- rbind(df2005, df2012)
 
-df <- data.frame(lapply(df[,], function(x) replace(x, x %in% -100:-1, NA)))
+df1 <- data.frame(lapply(df[,], function(x) replace(x, x %in% -100:-1, NA)))
 
-write.csv(df, file = "ruralHealthAndRoadsOfIndianVillages.csv")
+write.csv(df1, file = "ruralHealthAndRoadsOfIndianVillages.csv")
 write.csv(df2005, file = "ruralHealthAndRoadsOfIndianVillages2005.csv")
 write.csv(df2012, file = "ruralHealthAndRoadsOfIndianVillages2012.csv")
 
 numberOfCommonVillages <- dim(merge(df2005, df2012, by="id"))[1]
 numberOfCommonVillages
 
-df <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
+# df <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
 # df2005 <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages2005.csv", header = TRUE, row.names = 1)
 # df2012 <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages2012.csv", header = TRUE, row.names = 1)
-rm(df, df2005, df2012, numberOfCommonVillages)
+rm(df1, df2005, df2012, numberOfCommonVillages)
 ```
 
 # TO FIX:
- * Convert mbTreatmentWho1,2 and mbTreatmentWhere1,2 to percentage
- * Convert castes to percentages
- * Convert drinkingWater to percentages
  * Create infectious and non-infectious disease variables for village level
  * Use ED2/4 instead of TAs for education variables
 
