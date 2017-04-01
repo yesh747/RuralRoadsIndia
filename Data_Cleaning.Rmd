@@ -350,6 +350,7 @@ df2005[, startDis:endDis] = df2005[, startDis:endDis]*100
 df2005$mbAnyDisease = df2005$mbAnyDisease*100
 df2005$mbCostIncludesMedication = df2005$mbCostIncludesMedication*100
 
+
 #2012
 startDis <- which(colnames(df2012) == "mbCataract")
 endDis <- which(colnames(df2012) == "mbOtherLongTerm")
@@ -372,58 +373,55 @@ TO2012end <- which(colnames(IND2012) == "TO6")
   ## NOTE: using smoking bidis or hukkah for 2012 (TO4) but smoking cigarettes, bidis, or hukkah for 2005
 
 # 2. Get range for school-attendance variables
-SC2005begin <- which(colnames(IND2005) == "ta3")
-SC2005end <- which(colnames(IND2005) == "ta4")
+SC2005begin <- which(colnames(IND2005) == "ed2")
+SC2005end <- which(colnames(IND2005) == "ed3")
 
-SC2012begin <- which(colnames(IND2012) == "TA3")
-SC2012end <- which(colnames(IND2012) == "TA4")
 
-# 3. Get range for literacy and math-score variables
-LM2005begin <- which(colnames(IND2005) == "ta7lvl")
-LM2005end <- which(colnames(IND2005) == "ta9lvl")
-  ## NOTE: drop ta7lang, ta8lang, and ta9lang
+SC2012begin <- which(colnames(IND2012) == "ED2")
+SC2012end <- which(colnames(IND2012) == "ED4")
+  # NOTE: drop ED3
 
-LM2012begin <- which(colnames(IND2012) == "TA8B")
-LM2012end <- which(colnames(IND2012) == "TA10B")
-  ## NOTE: drop TA9A and TA10A
+# 
+# # 3. Get range for literacy and math-score variables
+# LM2005begin <- which(colnames(IND2005) == "ta7lvl")
+# LM2005end <- which(colnames(IND2005) == "ta9lvl")
+#   ## NOTE: drop ta7lang, ta8lang, and ta9lang
+# 
+# LM2012begin <- which(colnames(IND2012) == "TA8B")
+# LM2012end <- which(colnames(IND2012) == "TA10B")
+#   ## NOTE: drop TA9A and TA10A
 
 # 4. replace values less than 0 (survey error values) with NA.
-IND2005[,c(TO2005begin:TO2005end, SC2005begin:SC2005end, LM2005begin:LM2005end)] <- lapply(IND2005[, c(TO2005begin:TO2005end, SC2005begin:SC2005end, LM2005begin:LM2005end)], function(x) replace(x, x %in% -7:-1, NA))
+IND2005[,c(TO2005begin:TO2005end, SC2005begin:SC2005end)] <- lapply(IND2005[, c(TO2005begin:TO2005end, SC2005begin:SC2005end)], function(x) replace(x, x %in% -7:-1, NA))
 
-IND2012[,c(TO2012begin:TO2012end, SC2012begin:SC2012end, LM2012begin:LM2012end)] <- lapply(IND2012[, c(TO2012begin:TO2012end, SC2012begin:SC2012end, LM2012begin:LM2012end)], function(x) replace(x, x %in% -7:-1, NA))
+IND2012[,c(TO2012begin:TO2012end, SC2012begin:SC2012end)] <- lapply(IND2012[, c(TO2012begin:TO2012end, SC2012begin:SC2012end)], function(x) replace(x, x %in% -7:-1, NA))
 
 # 4.1 Extract values from 2012 data cause of its dumb format
 IND2012$TO4 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TO4)))
 IND2012$TO5 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TO5)))
 IND2012$TO6 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TO6)))
-IND2012$TA3 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA3)))
-IND2012$TA4 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA4)))
-IND2012$TA8B <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA8B)))
-IND2012$TA9B <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA9B)))
-IND2012$TA10B <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA10B)))
-IND2012$TA8A <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA8A)))
-IND2012$TA9A <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA9A)))
-IND2012$TA10A <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$TA10A)))
+IND2012$ED2 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$ED2)))
+IND2012$ED3 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$ED3)))
+IND2012$ED4 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$ED4)))
 
 # 5. Aggregate Data to Village Level
-VilInd2005 <- aggregate(IND2005[ ,c(TO2005begin:TO2005end, SC2005begin:SC2005end, LM2005begin:LM2005end)], by=list(IND2005$id), FUN = mean, na.rm = TRUE)
+VilInd2005 <- aggregate(IND2005[ ,c(TO2005begin:TO2005end, SC2005begin:SC2005end)], by=list(IND2005$id), FUN = mean, na.rm = TRUE)
 
-VilInd2012 <- aggregate(IND2012[ ,c(TO2012begin:TO2012end, SC2012begin:SC2012end, LM2012begin:LM2012end)], by=list(IND2012$id), FUN = mean, na.rm = TRUE)
+VilInd2012 <- aggregate(IND2012[ ,c(TO2012begin:TO2012end, SC2012begin:SC2012end)], by=list(IND2012$id), FUN = mean, na.rm = TRUE)
 
-# 6. Drop irrelevant variables ta7lang, ta8lang, and ta9lang
-VilInd2005[, c("ta7lang", "ta8lang", "ta9lang")] <- NULL
-VilInd2012[, c("TA9A", "TA10A")] <- NULL
+# 6. Drop irrelevant variable ED3 in 2012
+VilInd2012[, c("ED3")] <- NULL
 
 # 7. Rename variables
-VilInd2005 <- rename(VilInd2005, c("Group.1" = "id", "to2"="smokeTobacco", "to3"="chewTobacco", "to4"="drinkAlcohol", "ta3"="attendedSchool", "ta4"="gradeCompleted", "ta7lvl"="readingScore", "ta8lvl"="mathScore", "ta9lvl"="writingScore"))
+VilInd2005 <- rename(VilInd2005, c("Group.1" = "id", "to2"="smokeTobacco", "to3"="chewTobacco", "to4"="drinkAlcohol", "ed2"="illiterate", "ed3"="attendedSchool"))
 
-VilInd2012 <- rename(VilInd2012, c("Group.1" = "id", "TO4"="smokeTobacco", "TO5"="chewTobacco", "TO6"="drinkAlcohol", "TA3"="attendedSchool", "TA4"="gradeCompleted", "TA8B"="readingScore", "TA9B"="mathScore", "TA10B"="writingScore"))
+VilInd2012 <- rename(VilInd2012, c("Group.1" = "id", "TO4"="smokeTobacco", "TO5"="chewTobacco", "TO6"="drinkAlcohol", "ED2"="illiterate", "ED4"="attendedSchool"))
 
 # 8. Merge with df2005 and df2012
 df2005 <- merge(df2005, VilInd2005, by="id")
 df2012 <- merge(df2012, VilInd2012, by="id")
 
-rm(TO2005begin, TO2005end, TO2012begin, TO2012end, SC2005begin, SC2005end, SC2012begin, SC2012end, LM2005begin, LM2005end, LM2012begin, LM2012end, VilInd2005, VilInd2012)
+rm(TO2005begin, TO2005end, TO2012begin, TO2012end, SC2005begin, SC2005end, SC2012begin, SC2012end, VilInd2005, VilInd2012)
 
 ```
 
@@ -464,6 +462,8 @@ rm(TO2005begin, TO2005end, TO2012begin, TO2012end, SC2005begin, SC2005end, SC201
 # HH2012$WA1A
 ## --------
 
+
+
 HH2005Controls <- c("URBAN", "INCOME", "ID13", "ID16","SA4", "FU1", "FU1A", "WA1")
 HH2012Controls <- c("URBAN2011", "INCOME", "ID13", "ID15", "SA4", "FU1", "FU1A", "WA1A")
 
@@ -472,15 +472,7 @@ HH2012Controls <- c("URBAN2011", "INCOME", "ID13", "ID15", "SA4", "FU1", "FU1A",
 HH2005[,HH2005Controls] <- lapply(HH2005[, HH2005Controls], function(x) replace(x, x %in% -7:-1, NA))
 HH2012[,HH2012Controls] <- lapply(HH2012[, HH2012Controls], function(x) replace(x, x %in% -7:-1, NA))
 
-#convert owning toilet from categorical to binary
-HH2005$SA4 <- ifelse(HH2005$SA4 > 0, 1, 0)
-HH2012$SA4 <- ifelse(HH2012$SA4 > 0, 1, 0)
 
-
-
-```
-
-```{r}
 # 3. Extract values from 2005 and 2012 data cause of its dumb format
 HH2005$URBAN <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$URBAN)))
 HH2005$ID13 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$ID13)))
@@ -494,6 +486,10 @@ HH2012$SA4 <- as.numeric(str_sub(HH2012$SA4, 2, 2))
 HH2012$FU1 <- as.numeric(str_sub(HH2012$FU1,-1,-1))
 HH2012$WA1A <- as.numeric(str_sub(HH2012$WA1A,-2,-1))
 
+#convert owning toilet from categorical to binary
+HH2005$SA4 <- ifelse(HH2005$SA4 > 0, 1, 0)
+HH2012$SA4 <- ifelse(HH2012$SA4 > 1, 1, 0)
+
 # 4. Aggregate data to village level
 VilInd2005 <- aggregate(HH2005[ ,HH2005Controls], by=list(HH2005$id), FUN=mean, na.rm=TRUE)
 VilInd2012 <- aggregate(HH2012[ ,HH2012Controls], by=list(HH2012$id), FUN=mean, na.rm=TRUE)
@@ -501,6 +497,8 @@ VilInd2012 <- aggregate(HH2012[ ,HH2012Controls], by=list(HH2012$id), FUN=mean, 
 # 5. Rename Variables
 VilInd2005 <- rename(VilInd2005, c("Group.1"="id", "URBAN"="urban", "INCOME"="income", "ID13"="caste", "ID16"="yearsLivingHere","SA4"="ownToilet", "FU1"="electricity", "FU1A"="electricityHours", "WA1"="drinkingWaterSource"))
 VilInd2012 <- rename(VilInd2012, c("Group.1"="id", "URBAN2011"="urban", "INCOME"="income", "ID13"="caste", "ID15"="yearsLivingHere","SA4"="ownToilet", "FU1"="electricity", "FU1A"="electricityHours", "WA1A"="drinkingWaterSource"))
+
+# 5. decided to drop own
 
 # 6. Merge with df2005 and df2012
 df2005 <- merge(df2005, VilInd2005, by="id")
@@ -663,7 +661,7 @@ rm(dropping, HH2005, IND2005, HH2012, IND2012, catVarsIND2012, catVarsIND2005, c
 ```{r exportCleanedData}
 df1 <- rbind(df2005, df2012)
 
-df1 <- data.frame(lapply(df[,], function(x) replace(x, x %in% -100:-1, NA)))
+df1 <- data.frame(lapply(df1[,], function(x) replace(x, x %in% -100:-1, NA)))
 
 write.csv(df1, file = "ruralHealthAndRoadsOfIndianVillages.csv")
 write.csv(df2005, file = "ruralHealthAndRoadsOfIndianVillages2005.csv")
@@ -672,7 +670,7 @@ write.csv(df2012, file = "ruralHealthAndRoadsOfIndianVillages2012.csv")
 numberOfCommonVillages <- dim(merge(df2005, df2012, by="id"))[1]
 numberOfCommonVillages
 
-# df <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
+# df1 <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
 # df2005 <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages2005.csv", header = TRUE, row.names = 1)
 # df2012 <- read.csv(file = "ruralHealthAndRoadsOfIndianVillages2012.csv", header = TRUE, row.names = 1)
 rm(df1, df2005, df2012, numberOfCommonVillages)
