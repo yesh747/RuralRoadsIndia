@@ -40,6 +40,10 @@ dfNoRoad <- df[(df$roadPaved==0),]
 dfNoRoad2005 <- df2005[(df2005$roadPaved==0), ]
 dfNoRoad2012 <- df2012[(df2012$roadPaved==0), ]
 
+dfNoRoad[, c('roadPaved', 'yearsWithPavedRoad')] <- NULL
+dfNoRoad2005[, c('roadPaved', 'yearsWithPavedRoad')] <- NULL
+dfNoRoad2012[, c('roadPaved', 'yearsWithPavedRoad')] <- NULL
+
 dfMerge <- merge(df2005, df2012, by="id")
 
 df$year <- as.factor(df$year)
@@ -48,7 +52,7 @@ df$year <- as.factor(df$year)
 
 # Regression Any Disease 
 ## Personal Controls
-```{r reg1, results='asis', echo=FALSE}
+```{r regAnyDisease1, results='asis', echo=FALSE, message=FALSE}
 
 plm.1 <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model="within")
 plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco, index = c("id", "year"), model="within")
@@ -60,6 +64,34 @@ plm.6 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + income + illi
 
 stargazer(plm.1, plm.2, plm.3, type="text", header=FALSE)
 stargazer(plm.4, plm.5, plm.6, type="text", header=FALSE)
+```
+
+## Village Controls
+```{r regAnyDisease2, results='asis', echo=FALSE, message=FALSE}
+
+plm.1 <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model="within")
+plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + ImmunizationCampaignsNumber + drinkingWaterSource.Piped, index = c("id", "year"), model="within")
+plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model="within")
+plm.4 <- plm(data=df, mbAnyDisease ~ roadPaved + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model="within")
+
+plm.5 <- plm(data=df, mbAnyDisease ~ lnDistanceToPavedRoad, index = c("id", "year"), model="within")
+plm.6 <- plm(data=df, mbAnyDisease ~ lnDistanceToPavedRoad + ImmunizationCampaignsNumber + drinkingWaterSource.Piped, index = c("id", "year"), model="within")
+plm.7 <- plm(data=df, mbAnyDisease ~ lnDistanceToPavedRoad + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model="within")
+plm.8 <- plm(data=df, mbAnyDisease ~ lnDistanceToPavedRoad + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model="within")
+
+stargazer(plm.1, plm.2, plm.3, plm.4, type="text", header=FALSE)
+stargazer(plm.5, plm.6,plm.7, plm.8, type="text", header=FALSE)
+
+```
+
+## Medical TreatmentWhere and TreatmentWho Controls
+```{r regAnyDisease3, results='asis', echo=FALSE, message=FALSE}
+
+```
+
+## Combined Controls
+```{r regAnyDisease4, results='asis', echo=FALSE, message=FALSE}
+
 ```
 
 
