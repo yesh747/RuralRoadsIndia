@@ -121,7 +121,9 @@ rm(mbStart, mbEnd, diseases, disease)
 ------------
 # II. Regressions
 
-$$diseaseIncidence_{it} = \beta distroad_{it} + \delta_{1} Ind_{it} + \delta_{2} household_{it} + \delta_{3} Village_{it} + \varepsilon_{it}$$
+$$diseaseIncidence_{it} = \beta distanceToPavedRoad_{it} + \delta_{1} Ind_{it} + \delta_{2} Household_{it} + \delta_{3} Village_{it} + \varepsilon_{it}$$
+
+$$diseaseIncidence_{it} = \beta roadPaved_{it} + \delta_{1} Ind_{it} + \delta_{2} Household_{it} + \delta_{3} Village_{it} + \varepsilon_{it}$$
 
 ## 1. Univariate Models
 ```{r reg1, message=FALSE}

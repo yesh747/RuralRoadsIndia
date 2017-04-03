@@ -265,6 +265,9 @@ MB2005end <- which(colnames(IND2005) == "mb25")
 IND2005[, MB2005begin: MB2005end] <- lapply(IND2005[, MB2005begin: MB2005end], function(x) replace(x, x %in% -7:-1, NA))
 IND2005[, MB2005begin: MB2005end] <- lapply(IND2005[, MB2005begin: MB2005end], function(x) replace(x, x %in% NA, 0))
 
+# 2 = Cured, 1 = sick
+IND2005[, MB2005begin: MB2005DiseaseEnd] <- ifelse(IND2005[, MB2005begin: MB2005DiseaseEnd] == 1, 1, 0)
+
 # Create new column that == 1 if a villager has any disease and 0 otherwise
 for(i in MB2005begin:MB2005DiseaseEnd) {
   IND2005$mbAnyDisease  <- ifelse(IND2005[, i] > 0, 1, 0)
@@ -274,7 +277,6 @@ VilInd2005 <- aggregate(IND2005[, c(MB2005begin:MB2005end)], by = list(IND2005$i
 VilInd2005$mbAnyDiseaseTEMP <-aggregate(IND2005$mbAnyDisease, by = list(IND2005$id), FUN = mean, na.rm = TRUE)
 VilInd2005$mbAnyDisease <- VilInd2005$mbAnyDiseaseTEMP$x
 VilInd2005$mbAnyDiseaseTEMP <- NULL
-
 
 # Create communicable and non-communicable disease categories
   #    key --> mbComDisease2005 <- c("mbSTDorAIDS", "mbPolio", "mbTuberculosis")
@@ -287,6 +289,7 @@ for(i in mbComDisease){
 for(i in mbNonComDisease){
   IND2005$mbNonComDisease <- ifelse(IND2005[, i] > 0, 1, 0)
 }
+
 VilInd2005$mbComDiseaseTEMP <-aggregate(IND2005$mbComDisease, by = list(IND2005$id), FUN = mean, na.rm = TRUE)
 VilInd2005$mbNonComDiseaseTEMP <-aggregate(IND2005$mbNonComDisease, by = list(IND2005$id), FUN = mean, na.rm = TRUE)
 VilInd2005$mbComDisease <- VilInd2005$mbComDiseaseTEMP$x
@@ -331,6 +334,9 @@ IND2012$MB26 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", IND2012$MB26)))
 IND2012[, MB2012begin: MB2012end] <- lapply(IND2012[, MB2012begin: MB2012end], function(x) replace(x, x %in% -7:-1, NA))
 IND2012[, MB2012begin: MB2012end] <- lapply(IND2012[, MB2012begin: MB2012end], function(x) replace(x, x %in% NA, 0))
 
+# 1 = Cured, 2 = sick
+IND2012[, MB2012begin: MB2012DiseaseEnd] <- ifelse(IND2012[, MB2012begin: MB2012DiseaseEnd] == 2, 1, 0)
+
 # Create new column that == 1 if a villager has any disease and 0 otherwise
 for(i in MB2012begin:MB2012DiseaseEnd) {
   IND2012$mbAnyDisease  <- ifelse(IND2012[, i] > 0, 1, 0)
@@ -345,7 +351,6 @@ VilInd2012$mbAnyDiseaseTEMP <- NULL
 # drop data not in 2005 survey
 VilInd2012[, c("MB16","MB23")] <- NULL
 
-
 # Create communicable and non-communicable disease categories
   #    key --> mbComDisease2005 <- c("mbSTDorAIDS", "mbPolio", "mbTuberculosis")
 mbComDisease <- c("MB15", "MB11", "MB4")
@@ -354,6 +359,7 @@ mbNonComDisease <- c("MB3", "MB5", "MB6", "MB7", "MB8", "MB9", "MB10", "MB12", "
 for(i in mbComDisease){
   IND2012$mbComDisease <- ifelse(IND2012[, i] > 0, 1, 0)
 }
+
 for(i in mbNonComDisease){
   IND2012$mbNonComDisease <- ifelse(IND2012[, i] > 0, 1, 0)
 }

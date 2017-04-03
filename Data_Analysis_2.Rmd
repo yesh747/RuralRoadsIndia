@@ -120,7 +120,7 @@ Percent Sick with Non-communicable Disease:
   * 2012 -> `r avg_mbNonComDisease12`%
   
   
-```{r dataTables, echo=FALSE}
+```{r dataTables, echo=FALSE, results='asis'}
 kable(diseaseMeansDF[,1:7])
 kable(diseaseMeansDF[,c(1,8:14)])
 ```
@@ -290,8 +290,6 @@ stargazer(plm.4, plm.5, header=FALSE)
 # stargazer(plm.1, plm.2, plm.3, plm.4, plm.5, type="text")
 ```
 
-
-# T
 
 
 
