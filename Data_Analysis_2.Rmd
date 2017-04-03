@@ -1,0 +1,337 @@
+---
+title: "Econ Thesis Data Analysis"
+author: "Yeshwant Chillakuru"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# plotting
+library(ggplot2)
+
+# regressions: robust and panel
+library(MASS)
+library(plm)
+library(foreign)
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+# data manipulation
+library(dplyr)
+library(tidyr)
+
+# other
+library(memisc)
+library(pander)
+library(knitr)
+```
+
+# Load Data
+```{r loadData, echo=FALSE}
+df <- read.csv("ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
+df2005 <- read.csv("ruralHealthAndRoadsOfIndianVillages2005.csv", header = TRUE, row.names = 1)
+df2012 <- read.csv("ruralHealthAndRoadsOfIndianVillages2012.csv", header = TRUE, row.names = 1)
+
+dfNoRoad <- df[(df$roadPaved==0),]
+dfNoRoad2005 <- df2005[(df2005$roadPaved==0), ]
+dfNoRoad2012 <- df2012[(df2012$roadPaved==0), ]
+
+dfMerge <- merge(df2005, df2012, by="id")
+
+df$year <- as.factor(df$year)
+
+```
+
+# 3. Data
+## Dimensions of dataset
+  * 2005 -> `r dim(df2005)`
+  * 2012 -> `r dim(df2012)`
+  * Number of Villages Same in 2005 and 2012 -> `r dim(dfMerge)[1]` villages
+
+## Road Summary Statistics
+```{r dataRoad, include=FALSE}
+
+pctPvdRd05 <- mean(df2005$roadPaved, na.rm = TRUE)*100
+pctPvdRd12 <- mean(df2012$roadPaved, na.rm = TRUE)*100
+
+avgDistRd2005 <- mean(dfNoRoad2005$distanceToPavedRoad, na.rm = TRUE)
+avgDistRd2012 <- mean(dfNoRoad2012$distanceToPavedRoad, na.rm = TRUE)
+
+
+rm(temp_dfRoad2005, temp_dfRoad2012)
+```
+
+Percent of villages with a paved road:
+
+  * 2005 -> `r pctPvdRd05`%
+  * 2012 -> `r pctPvdRd12`%
+  
+Average distance to road for villages without roads:
+
+  * 2005 -> `r avgDistRd2005` km
+  * 2012 -> `r avgDistRd2012` km
+  
+## Health Summary Statistics
+```{r dataHealth, include=FALSE, message=FALSE}
+
+avg_mbAnyDisease05 <- mean(df2005$mbAnyDisease, na.rm=TRUE)
+avg_mbAnyDisease12 <- mean(df2012$mbAnyDisease, na.rm=TRUE)
+
+avg_mbComDisease05 <- mean(df2005$mbComDisease, na.rm=TRUE)
+avg_mbComDisease12 <- mean(df2012$mbComDisease, na.rm=TRUE)
+
+avg_mbNonComDisease05 <- mean(df2005$mbNonComDisease, na.rm=TRUE)
+avg_mbNonComDisease12 <- mean(df2012$mbNonComDisease, na.rm=TRUE)
+
+diseaseMeansDF <- data.frame(Year=c('2005', '2012'))
+startDis <- which(colnames(df) == 'mbCataract')
+endDis <- which(colnames(df) == 'mbOtherLongTerm')
+diseaseNames <- colnames(df[,startDis:endDis])
+for(disease in diseaseNames){
+  diseaseMeansDF[,disease] <- c(mean(df2005[,disease]), mean(df2012[,disease]))
+}
+
+
+rm(startDis, endDis, disease)
+```
+
+Percent Sick with Any Disease:
+
+  * 2005 -> `r avg_mbAnyDisease05`%
+  * 2012 -> `r avg_mbAnyDisease12`%
+  
+Percent Sick with Communicable Disease:
+
+  * 2005 -> `r avg_mbComDisease05`%
+  * 2012 -> `r avg_mbComDisease12`%
+  
+Percent Sick with Non-communicable Disease:
+
+  * 2005 -> `r avg_mbNonComDisease05`%
+  * 2012 -> `r avg_mbNonComDisease12`%
+  
+Percent Sick with Non-communicable Disease:
+
+  * 2005 -> `r avg_mbNonComDisease05`%
+  * 2012 -> `r avg_mbNonComDisease12`%
+  
+  
+```{r dataTables, echo=FALSE}
+kable(diseaseMeansDF[,1:7])
+kable(diseaseMeansDF[,c(1,8:14)])
+```
+
+
+```{r dataPlot, echo=FALSE, message=FALSE}
+ggplot(data=df, aes(x=distanceToPavedRoad, y=mbAnyDisease, color=year)) + geom_point(alpha=0.3, na.rm = TRUE) + labs(title = 'Disease Incidence vs Road Distance') + geom_smooth(method=lm, se=FALSE, na.rm = TRUE)
+```
+
+
+# Regressions
+$$diseaseIncidence_{it} = \beta RoadPaved_{it} + \delta_{1} Ind_{it} + \delta_{2} Household_{it} + \delta_{3} Village_{it} + \varepsilon_{it}$$
+
+$$diseaseIncidence_{it} = \beta DistanceToPavedRoad_{it} + \delta_{1} Ind_{it} + \delta_{2} Household_{it} + \delta_{3} Village_{it} + \varepsilon_{it}$$
+
+## Any Disease
+
+### Paved vs Unpaved
+```{r regAnyDisease1, echo=FALSE, results='asis', message=FALSE}
+
+#univariate
+lm.1 <- lm(data=df, mbAnyDisease ~ roadPaved)
+lm.1.hc1 <- coeftest(lm.1, vcov=vcovHC(lm.1, "HC1"))
+
+plm.1 <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model = "within")
+plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + ImmunizationCampaignsNumber + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model = "within")
+plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + smokeTobacco + illiterate + ownToilet + caste.Brahmin + caste.OBC + caste.SC + caste.ST, index = c("id", "year"), model = "within")
+plm.4 <- plm(data=df, mbAnyDisease ~ roadPaved + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+plm.5 <- plm(data=df, mbAnyDisease ~ roadPaved + ImmunizationCampaignsNumber + smokeTobacco + illiterate + ownToilet + healthSubCenter + primaryHealthCenter + communityHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+
+stargazer(plm.1, plm.2, plm.3, header=FALSE)
+stargazer(plm.4, plm.5, header=FALSE)
+# stargazer(plm.1, plm.2, plm.3, plm.4, plm.5)
+```
+
+### Distance to Paved for villages without Road
+```{r regAnyDisease2, echo=FALSE, results='asis', message=FALSE}
+
+#univariate
+lm.1 <- lm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad)
+lm.1.hc1 <- coeftest(lm.1, vcov=vcovHC(lm.1, "HC1"))
+
+plm.1 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad, index = c("id", "year"), model = "within")
+plm.2 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + ImmunizationCampaignsNumber + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model = "within")
+plm.3 <- plm(data=df, mbAnyDisease ~ lnDistanceToPavedRoad + smokeTobacco + illiterate + ownToilet + caste.Brahmin + caste.OBC + caste.SC + caste.ST, index = c("id", "year"), model = "within")
+plm.4 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+plm.5 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + ImmunizationCampaignsNumber + smokeTobacco + illiterate + ownToilet + healthSubCenter + primaryHealthCenter + communityHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+
+stargazer(plm.1, plm.2, plm.3, header=FALSE)
+stargazer(plm.4, plm.5, header=FALSE)
+# stargazer(plm.1, plm.2, plm.3, plm.4, plm.5, type="text")
+```
+
+## Communicable Disease
+### Paved vs Unpaved
+```{r regComDisease1, echo=FALSE, results='asis', message=FALSE}
+
+#univariate
+lm.1 <- lm(data=df, mbComDisease ~ roadPaved)
+lm.1.hc1 <- coeftest(lm.1, vcov=vcovHC(lm.1, "HC1"))
+
+plm.1 <- plm(data=df, mbComDisease ~ roadPaved, index = c("id", "year"), model = "within")
+plm.2 <- plm(data=df, mbComDisease ~ roadPaved + ImmunizationCampaignsNumber + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model = "within")
+plm.3 <- plm(data=df, mbComDisease ~ roadPaved + smokeTobacco + illiterate + ownToilet + caste.Brahmin + caste.OBC + caste.SC + caste.ST, index = c("id", "year"), model = "within")
+plm.4 <- plm(data=df, mbComDisease ~ roadPaved + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+plm.5 <- plm(data=df, mbComDisease ~ roadPaved + ImmunizationCampaignsNumber + smokeTobacco + illiterate + ownToilet + healthSubCenter + primaryHealthCenter + communityHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+
+stargazer(plm.1, plm.2, plm.3, header=FALSE)
+stargazer(plm.4, plm.5, header=FALSE)
+# stargazer(plm.1, plm.2, plm.3, plm.4, plm.5)
+```
+
+### Distance to Paved for villages without Road
+```{r regComDisease2, echo=FALSE, results='asis', message=FALSE}
+
+#univariate
+lm.1 <- lm(data=dfNoRoad, mbComDisease ~ lnDistanceToPavedRoad)
+lm.1.hc1 <- coeftest(lm.1, vcov=vcovHC(lm.1, "HC1"))
+
+plm.1 <- plm(data=dfNoRoad, mbComDisease ~ lnDistanceToPavedRoad, index = c("id", "year"), model = "within")
+plm.2 <- plm(data=dfNoRoad, mbComDisease ~ lnDistanceToPavedRoad + ImmunizationCampaignsNumber + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model = "within")
+plm.3 <- plm(data=df, mbComDisease ~ lnDistanceToPavedRoad + smokeTobacco + illiterate + ownToilet + caste.Brahmin + caste.OBC + caste.SC + caste.ST, index = c("id", "year"), model = "within")
+plm.4 <- plm(data=dfNoRoad, mbComDisease ~ lnDistanceToPavedRoad + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+plm.5 <- plm(data=dfNoRoad, mbComDisease ~ lnDistanceToPavedRoad + ImmunizationCampaignsNumber + smokeTobacco + illiterate + ownToilet + healthSubCenter + primaryHealthCenter + communityHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+
+stargazer(plm.1, plm.2, plm.3, header=FALSE)
+stargazer(plm.4, plm.5, header=FALSE)
+# stargazer(plm.1, plm.2, plm.3, plm.4, plm.5, type="text")
+```
+
+
+## Non-Communicable Disease
+### Paved vs Unpaved
+```{r regNonComDisease1, echo=FALSE, results='asis', message=FALSE}
+
+#univariate
+lm.1 <- lm(data=df, mbNonComDisease ~ roadPaved)
+lm.1.hc1 <- coeftest(lm.1, vcov=vcovHC(lm.1, "HC1"))
+
+plm.1 <- plm(data=df, mbNonComDisease ~ roadPaved, index = c("id", "year"), model = "within")
+plm.2 <- plm(data=df, mbNonComDisease ~ roadPaved + ImmunizationCampaignsNumber + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model = "within")
+plm.3 <- plm(data=df, mbNonComDisease ~ roadPaved + smokeTobacco + illiterate + ownToilet + caste.Brahmin + caste.OBC + caste.SC + caste.ST, index = c("id", "year"), model = "within")
+plm.4 <- plm(data=df, mbNonComDisease ~ roadPaved + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+plm.5 <- plm(data=df, mbNonComDisease ~ roadPaved + ImmunizationCampaignsNumber + smokeTobacco + illiterate + ownToilet + healthSubCenter + primaryHealthCenter + communityHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+
+plm.6 <- plm(data=df, mbNonComDisease ~ roadPaved + mbTreatmentWho1.PublicDoc + mbTreatmentWho1.PublicDocInPvt + mbTreatmentWho1.PvtDoc + mbTreatmentWho1.Pharm, index = c("id", "year"), model = "within")
+summary(plm.6)
+
+
+stargazer(plm.1, plm.2, plm.3, header=FALSE)
+stargazer(plm.4, plm.5, header=FALSE)
+# stargazer(plm.1, plm.2, plm.3, plm.4, plm.5)
+```
+
+### Distance to Paved for villages without Road
+```{r regNonComDisease2, echo=FALSE, results='asis', message=FALSE}
+
+#univariate
+lm.1 <- lm(data=dfNoRoad, mbNonComDisease ~ lnDistanceToPavedRoad)
+lm.1.hc1 <- coeftest(lm.1, vcov=vcovHC(lm.1, "HC1"))
+
+plm.1 <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistanceToPavedRoad, index = c("id", "year"), model = "within")
+plm.2 <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistanceToPavedRoad + ImmunizationCampaignsNumber + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model = "within")
+plm.3 <- plm(data=df, mbNonComDisease ~ lnDistanceToPavedRoad + smokeTobacco + illiterate + ownToilet + caste.Brahmin + caste.OBC + caste.SC + caste.ST, index = c("id", "year"), model = "within")
+plm.4 <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistanceToPavedRoad + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+plm.5 <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistanceToPavedRoad + ImmunizationCampaignsNumber + smokeTobacco + illiterate + ownToilet + healthSubCenter + primaryHealthCenter + communityHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+
+stargazer(plm.1, plm.2, plm.3, header=FALSE)
+stargazer(plm.4, plm.5, header=FALSE)
+# stargazer(plm.1, plm.2, plm.3, plm.4, plm.5, type="text")
+```
+
+## STDs or AIDS
+### Paved vs Unpaved
+```{r regSTDDisease1, echo=FALSE, results='asis', message=FALSE}
+
+#univariate
+lm.1 <- lm(data=df, mbSTDorAIDS ~ roadPaved)
+lm.1.hc1 <- coeftest(lm.1, vcov=vcovHC(lm.1, "HC1"))
+
+plm.1 <- plm(data=df, mbSTDorAIDS ~ roadPaved, index = c("id", "year"), model = "within")
+plm.2 <- plm(data=df, mbSTDorAIDS ~ roadPaved + ImmunizationCampaignsNumber + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model = "within")
+plm.3 <- plm(data=df, mbSTDorAIDS ~ roadPaved + smokeTobacco + illiterate + ownToilet + caste.Brahmin + caste.OBC + caste.SC + caste.ST, index = c("id", "year"), model = "within")
+plm.4 <- plm(data=df, mbSTDorAIDS ~ roadPaved + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+plm.5 <- plm(data=df, mbSTDorAIDS ~ roadPaved + ImmunizationCampaignsNumber + smokeTobacco + illiterate + ownToilet + healthSubCenter + primaryHealthCenter + communityHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+
+stargazer(plm.1, plm.2, plm.3, header=FALSE)
+stargazer(plm.4, plm.5, header=FALSE)
+# stargazer(plm.1, plm.2, plm.3, plm.4, plm.5)
+```
+
+### Distance to Paved for villages without Road
+```{r regSTDDisease2, echo=FALSE, results='asis', message=FALSE}
+
+#univariate
+lm.1 <- lm(data=dfNoRoad, mbSTDorAIDS ~ lnDistanceToPavedRoad)
+lm.1.hc1 <- coeftest(lm.1, vcov=vcovHC(lm.1, "HC1"))
+
+plm.1 <- plm(data=dfNoRoad, mbSTDorAIDS ~ lnDistanceToPavedRoad, index = c("id", "year"), model = "within")
+plm.2 <- plm(data=dfNoRoad, mbSTDorAIDS ~ lnDistanceToPavedRoad + ImmunizationCampaignsNumber + healthSubCenter + primaryHealthCenter + communityHealthCenter, index = c("id", "year"), model = "within")
+plm.3 <- plm(data=df, mbSTDorAIDS ~ lnDistanceToPavedRoad + smokeTobacco + illiterate + ownToilet + caste.Brahmin + caste.OBC + caste.SC + caste.ST, index = c("id", "year"), model = "within")
+plm.4 <- plm(data=dfNoRoad, mbSTDorAIDS ~ lnDistanceToPavedRoad + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+plm.5 <- plm(data=dfNoRoad, mbSTDorAIDS ~ lnDistanceToPavedRoad + ImmunizationCampaignsNumber + smokeTobacco + illiterate + ownToilet + healthSubCenter + primaryHealthCenter + communityHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model = "within")
+
+stargazer(plm.1, plm.2, plm.3, header=FALSE)
+stargazer(plm.4, plm.5, header=FALSE)
+# stargazer(plm.1, plm.2, plm.3, plm.4, plm.5, type="text")
+```
+
+
+# T
+
+
+
+
+--------------------------------------------------------------------------------------------------
+# Notes
+  * Regression
+    * Controls:
+        * Need to control for how often individuals go to hospital (more people sick in 2005 then in 2012 --> increased diagnosis?)
+      
+# Mention in paper
+   * Income had no impact with village and time fixed effects
+
+# To Do:
+  * Natural Experiment of Rural Road Expansion Program --> Evan and Owens --> COPS program
+      * **Can differences in differences method be used?** 
+      * Use roadPaved as Treatment
+  * Granger Test for determining simultaneous causality?
+  
+  
+# Questions
+  * If using state-fixed and time-fixed effects for each village, do I really need all these controls?
+  * Can I do a differences-in-differences? <- potentially do for paved vs unpaved
+  * What controls should I include and what shouldn't? Should I be worried about "controlling away" the actual effect?
+    
+ 
+ 
+ 
+ 
+```{r everythingRegression, include=FALSE}
+# EVERYTHING Regression
+lm <- lm(data=df, mbAnyDisease ~ roadPaved + ImmunizationCampaignsNumber + mbTreatmentRecieved + mbCostOfTreatment + mbTravelExpenses + smokeTobacco + chewTobacco + drinkAlcohol + illiterate + attendedSchool + income + ownToilet + electricity + healthSubCenter + primaryHealthCenter + communityHealthCenter + govtMaternityCenter + pvtClinicTrainedDoc + pvtClinicUntrainedDoc + pvtHospital + pvtPharm + otherGovtMedFacility + distHealthSubCenter + distPrimaryHealthCenter + distCommunityHealthCenter + distDistrictHospital + distGovtMaternityCenter + distPvtClinicTrainedDoc + distPvtClinicUntrainedDoc + distPvtHospital + distPvtPharm + distOtherGovtMedFacility + caste.Brahmin + caste.OBC + caste.SC + caste.ST + drinkingWaterSource.Piped + drinkingWaterSource.TubeWell + drinkingWaterSource.HandPump + drinkingWaterSource.OpenWell + drinkingWaterSource.CoveredWell + drinkingWaterSource.River + drinkingWaterSource.Pond + drinkingWaterSource.Truck + drinkingWaterSource.RainWater + drinkingWaterSource.Bottled + drinkingWaterSource.Other + mbTreatmentWho1.NA + mbTreatmentWho1.PublicDoc + mbTreatmentWho1.PublicDocInPvt + mbTreatmentWho1.PvtDoc + mbTreatmentWho1.Pharm + mbTreatmentWhere1.NA + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown + mbTreatmentWho2.NA + mbTreatmentWho2.PublicDoc + mbTreatmentWho2.PublicDocInPvt + mbTreatmentWho2.PvtDoc + mbTreatmentWho2.Pharm + mbTreatmentWhere2.NA + mbTreatmentWhere2.SameVillage + mbTreatmentWhere2.AnotherVillage + mbTreatmentWhere2.OtherTown + mbTreatmentWhere2.DistrictTown)
+lm.hc1 <- coeftest(lm, vcov=vcovHC(lm, "HC1"))
+```
+
+
+
+
+
+
+
+
+

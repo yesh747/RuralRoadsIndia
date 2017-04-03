@@ -1,0 +1,101 @@
+---
+title: "Econ Thesis Data Analysis"
+author: "Yeshwant Chillakuru"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# plotting
+library(ggplot2)
+
+# regressions: robust and panel
+library(MASS)
+library(plm)
+library(foreign)
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+# data manipulation
+library(dplyr)
+library(tidyr)
+
+# other
+library(memisc)
+library(pander)
+library(knitr)
+```
+
+# Load Data
+```{r loadData, echo=FALSE}
+df <- read.csv("ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
+df2005 <- read.csv("ruralHealthAndRoadsOfIndianVillages2005.csv", header = TRUE, row.names = 1)
+df2012 <- read.csv("ruralHealthAndRoadsOfIndianVillages2012.csv", header = TRUE, row.names = 1)
+
+dfNoRoad <- df[(df$roadPaved==0),]
+dfNoRoad2005 <- df2005[(df2005$roadPaved==0), ]
+dfNoRoad2012 <- df2012[(df2012$roadPaved==0), ]
+
+dfMerge <- merge(df2005, df2012, by="id")
+
+df$year <- as.factor(df$year)
+
+```
+
+# Regression Any Disease 
+## Personal Controls
+```{r reg1, results='asis', echo=FALSE}
+
+plm.1 <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model="within")
+plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco, index = c("id", "year"), model="within")
+plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + caste.Brahmin, index = c("id", "year"), model="within")
+
+plm.4 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad, index = c("id", "year"), model="within")
+plm.5 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + income + illiterate + smokeTobacco, index = c("id", "year"), model="within")
+plm.6 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + income + illiterate + smokeTobacco + ownToilet + electricity + caste.Brahmin, index = c("id", "year"), model="within")
+
+stargazer(plm.1, plm.2, plm.3, type="text", header=FALSE)
+stargazer(plm.4, plm.5, plm.6, type="text", header=FALSE)
+```
+
+
+--------------------------------------------------------------------------------------------------
+# Notes
+  * Regression
+    * Controls:
+        * Need to control for how often individuals go to hospital (more people sick in 2005 then in 2012 --> increased diagnosis?)
+      
+# Mention in paper
+   * Income had no impact with village and time fixed effects
+
+# To Do:
+  * 
+  
+  
+# Questions
+  * If using state-fixed and time-fixed effects for each village, do I really need all these controls?
+  * Can I do a differences-in-differences? <- potentially do for paved vs unpaved
+  * What controls should I include and what shouldn't? Should I be worried about "controlling away" the actual effect?
+    
+ 
+ 
+ 
+ 
+```{r everythingRegression, include=FALSE}
+# EVERYTHING Regression
+lm <- lm(data=df, mbAnyDisease ~ roadPaved + ImmunizationCampaignsNumber + mbTreatmentRecieved + mbCostOfTreatment + mbTravelExpenses + smokeTobacco + chewTobacco + drinkAlcohol + illiterate + attendedSchool + income + ownToilet + electricity + healthSubCenter + primaryHealthCenter + communityHealthCenter + govtMaternityCenter + pvtClinicTrainedDoc + pvtClinicUntrainedDoc + pvtHospital + pvtPharm + otherGovtMedFacility + distHealthSubCenter + distPrimaryHealthCenter + distCommunityHealthCenter + distDistrictHospital + distGovtMaternityCenter + distPvtClinicTrainedDoc + distPvtClinicUntrainedDoc + distPvtHospital + distPvtPharm + distOtherGovtMedFacility + caste.Brahmin + caste.OBC + caste.SC + caste.ST + drinkingWaterSource.Piped + drinkingWaterSource.TubeWell + drinkingWaterSource.HandPump + drinkingWaterSource.OpenWell + drinkingWaterSource.CoveredWell + drinkingWaterSource.River + drinkingWaterSource.Pond + drinkingWaterSource.Truck + drinkingWaterSource.RainWater + drinkingWaterSource.Bottled + drinkingWaterSource.Other + mbTreatmentWho1.NA + mbTreatmentWho1.PublicDoc + mbTreatmentWho1.PublicDocInPvt + mbTreatmentWho1.PvtDoc + mbTreatmentWho1.Pharm + mbTreatmentWhere1.NA + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown + mbTreatmentWho2.NA + mbTreatmentWho2.PublicDoc + mbTreatmentWho2.PublicDocInPvt + mbTreatmentWho2.PvtDoc + mbTreatmentWho2.Pharm + mbTreatmentWhere2.NA + mbTreatmentWhere2.SameVillage + mbTreatmentWhere2.AnotherVillage + mbTreatmentWhere2.OtherTown + mbTreatmentWhere2.DistrictTown)
+lm.hc1 <- coeftest(lm, vcov=vcovHC(lm, "HC1"))
+```
+
+
+
+
+
+
+
+
+

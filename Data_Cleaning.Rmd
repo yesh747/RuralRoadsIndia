@@ -276,6 +276,25 @@ VilInd2005$mbAnyDisease <- VilInd2005$mbAnyDiseaseTEMP$x
 VilInd2005$mbAnyDiseaseTEMP <- NULL
 
 
+# Create communicable and non-communicable disease categories
+  #    key --> mbComDisease2005 <- c("mbSTDorAIDS", "mbPolio", "mbTuberculosis")
+mbComDisease <- c("mb14", "mb10", "mb3")
+  #    key --> mbNonComDisease2005 <- c("mbCataract", "mbHighBP", "mbHeartDisease", "mbDiabetes", "mbLeprosy", "mbCancer", "mbAsthma", "mbParalysis", "mbEpilepsy", "mbMentalIllness")
+mbNonComDisease <- c("mb2", "mb4", "mb5", "mb6", "mb7", "mb8", "mb9", "mb11", "mb12", "mb13")
+for(i in mbComDisease){
+  IND2005$mbComDisease <- ifelse(IND2005[, i] > 0, 1, 0)
+}
+for(i in mbNonComDisease){
+  IND2005$mbNonComDisease <- ifelse(IND2005[, i] > 0, 1, 0)
+}
+VilInd2005$mbComDiseaseTEMP <-aggregate(IND2005$mbComDisease, by = list(IND2005$id), FUN = mean, na.rm = TRUE)
+VilInd2005$mbNonComDiseaseTEMP <-aggregate(IND2005$mbNonComDisease, by = list(IND2005$id), FUN = mean, na.rm = TRUE)
+VilInd2005$mbComDisease <- VilInd2005$mbComDiseaseTEMP$x
+VilInd2005$mbNonComDisease <- VilInd2005$mbNonComDiseaseTEMP$x
+VilInd2005$mbComDiseaseTEMP <- NULL
+VilInd2005$mbNonComDiseaseTEMP <- NULL
+
+
 VilInd2005 <- rename(VilInd2005, c("Group.1" = "id", "mb2" = "mbCataract", "mb3" = "mbTuberculosis", "mb4" = "mbHighBP", "mb5" = "mbHeartDisease", "mb6" = "mbDiabetes", "mb7" = "mbLeprosy", "mb8" = "mbCancer", "mb9" = "mbAsthma", "mb10" = "mbPolio", "mb11" = "mbParalysis","mb12"="mbEpilepsy" ,"mb13" = "mbMentalIllness", "mb14" = "mbSTDorAIDS", "mb15" = "mbOtherLongTerm", "mb16" = "mbDaysIncapacitated", "mb17" = "mbTreatmentRecieved", "mb19_1" = "mbTreatmentWho1", "mb20_1" = "mbTreatmentWhere1", "mb19_2" = "mbTreatmentWho2", "mb20_2" = "mbTreatmentWhere2", "mb21" = "mbDaysHospitalized", "mb22" = "mbCostOfTreatment", "mb23" = "mbCostIncludesMedication", "mb24" = "mbCostOfMeds", "mb25" = "mbTravelExpenses"))
 df2005 <- merge(df2005, VilInd2005, by="id")
 
@@ -326,11 +345,31 @@ VilInd2012$mbAnyDiseaseTEMP <- NULL
 # drop data not in 2005 survey
 VilInd2012[, c("MB16","MB23")] <- NULL
 
+
+# Create communicable and non-communicable disease categories
+  #    key --> mbComDisease2005 <- c("mbSTDorAIDS", "mbPolio", "mbTuberculosis")
+mbComDisease <- c("MB15", "MB11", "MB4")
+  #    key --> mbNonComDisease2005 <- c("mbCataract", "mbHighBP", "mbHeartDisease", "mbDiabetes", "mbLeprosy", "mbCancer", "mbAsthma", "mbParalysis", "mbEpilepsy", "mbMentalIllness")
+mbNonComDisease <- c("MB3", "MB5", "MB6", "MB7", "MB8", "MB9", "MB10", "MB12", "MB13", "MB14")
+for(i in mbComDisease){
+  IND2012$mbComDisease <- ifelse(IND2012[, i] > 0, 1, 0)
+}
+for(i in mbNonComDisease){
+  IND2012$mbNonComDisease <- ifelse(IND2012[, i] > 0, 1, 0)
+}
+VilInd2012$mbComDiseaseTEMP <-aggregate(IND2012$mbComDisease, by = list(IND2012$id), FUN = mean, na.rm = TRUE)
+VilInd2012$mbNonComDiseaseTEMP <-aggregate(IND2012$mbNonComDisease, by = list(IND2012$id), FUN = mean, na.rm = TRUE)
+VilInd2012$mbComDisease <- VilInd2012$mbComDiseaseTEMP$x
+VilInd2012$mbNonComDisease <- VilInd2012$mbNonComDiseaseTEMP$x
+VilInd2012$mbComDiseaseTEMP <- NULL
+VilInd2012$mbNonComDiseaseTEMP <- NULL
+
+
 VilInd2012 <- rename(VilInd2012, c("Group.1" = "id", "MB3" = "mbCataract", "MB4" = "mbTuberculosis", "MB5" = "mbHighBP", "MB6" = "mbHeartDisease", "MB7" = "mbDiabetes", "MB8" = "mbLeprosy", "MB9" = "mbCancer", "MB10" = "mbAsthma", "MB11" = "mbPolio", "MB12" = "mbParalysis","MB13"="mbEpilepsy" ,"MB14" = "mbMentalIllness", "MB15" = "mbSTDorAIDS", "MB17" = "mbOtherLongTerm", "MB18" = "mbDaysIncapacitated", "MB19" = "mbTreatmentRecieved", "MB21A" = "mbTreatmentWho1", "MB21B" = "mbTreatmentWhere1", "MB22A" = "mbTreatmentWho2", "MB22B" = "mbTreatmentWhere2", "MB24" = "mbDaysHospitalized", "MB25" = "mbCostOfTreatment", "MB26" = "mbCostIncludesMedication", "MB27" = "mbCostOfMeds", "MB28" = "mbTravelExpenses"))
 df2012 <- merge(df2012, VilInd2012, by="id")
 
 
-rm(MB2005begin, MB2005DiseaseEnd, MB2005end, MB2012begin, MB2012end, MB2012DiseaseEnd, VilInd2005, VilInd2012, i)
+rm(MB2005begin, MB2005DiseaseEnd, MB2005end, MB2012begin, MB2012end, MB2012DiseaseEnd, VilInd2005, VilInd2012, mbComDisease, mbNonComDisease, i)
 
 
 # Remove Repeat Data
@@ -348,6 +387,8 @@ startDis <- which(colnames(df2005) == "mbCataract")
 endDis <- which(colnames(df2005) == "mbOtherLongTerm")
 df2005[, startDis:endDis] = df2005[, startDis:endDis]*100
 df2005$mbAnyDisease = df2005$mbAnyDisease*100
+df2005$mbComDisease = df2005$mbComDisease*100
+df2005$mbNonComDisease = df2005$mbNonComDisease*100
 df2005$mbCostIncludesMedication = df2005$mbCostIncludesMedication*100
 
 
@@ -355,6 +396,9 @@ df2005$mbCostIncludesMedication = df2005$mbCostIncludesMedication*100
 startDis <- which(colnames(df2012) == "mbCataract")
 endDis <- which(colnames(df2012) == "mbOtherLongTerm")
 df2012[, startDis:endDis] = df2012[, startDis:endDis]*100
+df2012$mbAnyDisease = df2012$mbAnyDisease*100
+df2012$mbComDisease = df2012$mbComDisease*100
+df2012$mbNonComDisease = df2012$mbNonComDisease*100
 df2012$mbCostIncludesMedication = df2012$mbCostIncludesMedication*100
 
 rm(startDis, endDis)
@@ -657,8 +701,22 @@ rm(dropping, HH2005, IND2005, HH2012, IND2012, catVarsIND2012, catVarsIND2005, c
 ```
 
 
+# Extra Last-Minute Data Cleaning
+```{r extraClean}
+
+# Drop District Hospital because it is always == 0
+df2005$districtHospital <- NULL
+df2012$districtHospital <- NULL
+
+# Convert ownToilet to percentage
+df2005$ownToilet <- df2005$ownToilet*100
+df2012$ownToilet <- df2012$ownToilet*100
+```
+
+
 # Export data to .csv files
 ```{r exportCleanedData}
+
 df1 <- rbind(df2005, df2012)
 
 df1 <- data.frame(lapply(df1[,], function(x) replace(x, x %in% -100:-1, NA)))
@@ -677,8 +735,6 @@ rm(df1, df2005, df2012, numberOfCommonVillages)
 ```
 
 # TO FIX:
- * Create infectious and non-infectious disease variables for village level
- * Use ED2/4 instead of TAs for education variables
 
 # NOTES
  * Area, Population, and num of HH is missing from 2012 village data
