@@ -130,16 +130,7 @@ rm(startDis, endDis, disease)
 
 
 
-From the survey data, the impact of PGMSY on rural India can be seen. In 2005, `r round(pctPvdRd05,2)`% of villages in the IHDS survey had paved roads, but in 2012, `r round(pctPvdRd12,2)`%had paved roads. Additionally, for villages without paved roads, the closest paved road was `r round(avgDistRd2005,2)` km away on average in 2005, but only `r round(avgDistRd2012,2)` km away on average in 2012. Disease morbidity increased from 2005 to 2012 for all diseases in the dataset, except STD/AIDS, which remained the same.
-
-
-
-
-```{r dataTables, echo=FALSE, results='asis', size = 'tiny'}
-kable(diseaseMeansDF[,1:7], caption="Average percent of villagers in each village with disease")
-kable(diseaseMeansDF[,c(1,8:14)])
-```
-
+From the survey data, the impact of PGMSY on rural India can be seen. In 2005, `r round(pctPvdRd05,2)`% of villages in the IHDS survey had paved roads, but in 2012, `r round(pctPvdRd12,2)`%had paved roads. Additionally, for villages without paved roads, the closest paved road was `r round(avgDistRd2005,2)` km away on average in 2005, but only `r round(avgDistRd2012,2)` km away on average in 2012. Disease morbidity increased from 2005 to 2012 for all diseases in the dataset, except STD/AIDS, which remained the same (Table 1).
 
 A plausible explanation for this may be improved diagnosis from medical campaigns. A simple analysis examining “Percentage of Village with Any Disease vs Distance to Road” reveals a negative relationship between distanceToPavedRoad and mbAnyDisease in 2005 but a positive relationship in 2012. The 2005 correlation opposes the prevailing notion that roads access would reduce disease incidence, but may be attributed to increased diagnosis.
 
@@ -152,10 +143,8 @@ ggplot(data=dfNoRoad, aes(x=distanceToPavedRoad, y=mbAnyDisease, color=year)) + 
 # Model
 
 \qquad Two OLS regressions models with time and village-fixed effects will be used to analyze the impact of road expansion on incidence of disease:
-
-$$diseaseIncidence_{it} = \beta RoadPaved_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it} \tag{2}$$
- 
-$$diseaseIncidence_{it} = \beta ln(DistanceToPavedRoad)_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it} \tag{2}$$
+$$diseaseIncidence_{it} = \beta RoadPaved_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it} \tag{1}$$
+$$diseaseIncidence_{it} = \beta ln(DistToPavedRoad)_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it} \tag{2}$$
  
  $diseaseIncidence$ is the percent of villagers in village $i$ during year $t$ ($t$ is 2005 or 2012) that fall into one of three disease categories:
  
@@ -165,7 +154,7 @@ $$diseaseIncidence_{it} = \beta ln(DistanceToPavedRoad)_{it} + \delta_{1} Househ
 
 $Household_{it}$ represents village-level controls of household characteristics, such as income and electricity access, aggregated to the corresponding village of the household. $Village_{it}$ represents controls for characteristics of the village, such as number of primary health centers in village or the number of immunization campaigns for polio conducted in the village in the past year. $Medical_{it}$ represents village-level controls for where individuals in that village go for treatment, such as same village or different village, and for who individuals seek treatment, such private doctor or public doctor. $\gamma_{it}$ represents village fixed effects, and $\varepsilon_{it}$ is the error term. 
 
-The only difference between Models 1 and 2 is the primary indepedent variable of interest: $RoadPaved_{it}$ vs $ln(DistanceToPavedRoad)_{it}$. Equation (1) allows us to understand the impact of how introducing a paved road affects $diseaseIncidence_{it}$, while Equation (2) allows us to understand how becoming closer to a road for villages with no paved road can improve $diseaseIncidedence_{it}$. $roadPaved_{it}$ indicates if there is or is not a paved road in the village. $ln(DistanceToPavedRoad)_{it}$ indicates the natural log distance to the nearest paved for villages without a paved road. Model 2 is only applied to villages without a paved road to separate the effects of road being present or not versus improvement in distance to the road.
+The only difference between Models 1 and 2 is the primary indepedent variable of interest: $RoadPaved_{it}$ vs $ln(DistToPavedRoad)_{it}$. Equation (1) allows us to understand the impact of how introducing a paved road affects $diseaseIncidence_{it}$, while Equation (2) allows us to understand how becoming closer to a road for villages with no paved road can improve $diseaseIncidedence_{it}$. $roadPaved_{it}$ indicates if there is or is not a paved road in the village. $ln(DistToPavedRoad)_{it}$ indicates the natural log distance to the nearest paved for villages without a paved road. Model 2 is only applied to villages without a paved road to separate the effects of road being present or not versus improvement in distance to the road.
 
 Simultaneous causality may present a problem in the current model. Individuals may move to areas where roads are built to improve economic opportunities. This may increase risk of communicability, similar to Djemai’s study, where high-risk mobile groups increased HIV risk in areas closer to roads. To isolate the impact of increased communicability on disease incidence, I performed seperate regressions for communicable vs non-communicable diseaes. For example, if road access is bringing high-risk groups, who partake in risky sexual behavior, STD/HIV incidence would increase, while non-communicable diseases, like mental illness would not be effected.
 
@@ -179,32 +168,61 @@ The time and village-fixed effects allowed to account for several potentials are
 
 plm.1 <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model="within")
 plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
-plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn + seenDoctor, index = c("id", "year"), model="within")
+plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
 
 
 plm.4 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd, index = c("id", "year"), model="within")
 plm.5 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), modsel="within")
-plm.6 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn + seenDoctor, index = c("id", "year"), model="within")
+plm.6 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
 
 stargazer(plm.1, plm.2, plm.3, type="text", header=FALSE)
 stargazer(plm.4, plm.5, plm.6, type="text", header=FALSE)
 
 ```
 
-## Road Paved vs Road Unpaved
-```{r anyDisease_RoadPaved, fig.width=3, echo=FALSE, results='asis'}
-stargazer(plm.1, plm.2, plm.3, header=FALSE)
-```
+## General Disease Incidence and Roads
 
-## Distance to Nearest Road
-```{r anyDisease_RoadDist, fig.width=3, echo=FALSE, results='asis'}
-stargazer(plm.4, plm.5, plm.6, header=FALSE)
-```
+\qquad Table 3 presents the results for Equation (1) for percentage of villagers with at least one of the 14 major morbidity diseases (mbAnyDisease). A positive correlation initially exists at the 10% significance level (Table 3: Regression 2) between having a paved road and when controlling for $Household_{it}$ variables (income: average income of village, illiterate: percentage of villagers that can read or write, smokeTobacco: percentage of villagers that smoke, electricity: percentage of villagers with electricity, ownToilet: percentage of villagers own a toilet, seenDoctor: percentage of villagers who have seen a doctor in the past 5 years for a non-major morbidity disease). In Table 3: Regression 2, villages with a paved road have a `r round(plm.2$coefficients['roadPaved'],3)` percentage points increase in the percent of their population sick with on the 14 diseases. However, the weak level of significance (10%) and combined results of Table 3: Regression 3 support concluding that introduction of a paved road has no signficant impact on `mbAnyDisease. Table 3: Regression 3 includes $Medical_{it}$ controls where individuals sought treatment when sick with the disease (Treat.SameVil: percentage of villagers that sought treatment in the same village, Treat.OthrVil: percentage of villagers that sought treatment in a different village, Treat.OthrTwn: percentage of villagers that sought treatment in a larger town, Treat.DstrctTwn: percentage of villagers that sought treatment in the large district town). When controlling for treatment location, the effect of having a paved road in the village and all $Household_{it}$ and $Village_{it}$ controls become insignificant.
+
+Table 4 presents data for Equation (2) in relation 
+ - TODO: Talk about suprigins finding by comparing it to Djemai paper.
+
+## Communicable Disease Incidence and Roads
+
+
+## Non-Communicable Disease Incidence and Roads
+
+
+## STD/AIDS Incidence and Roads
 
 
 # Robustness Checks
 
-## - TO-DO: 
+# Conclusion
+
+# Tables
+
+```{r dataTables, echo=FALSE, results='asis', size = 'tiny'}
+kable(diseaseMeansDF[,1:7], caption="Average Percent of Villagers in each Village with Disease")
+
+kable(diseaseMeansDF[,c(1,8:14)], caption="Average Percent of Villagers in each Village with Disease (cont.)")
+```
+
+```{r anyDisease_RoadPaved, fig.width=3, echo=FALSE, results='asis'}
+stargazer(plm.1, plm.2, plm.3, title="Road Paved and Incidence of Any Disease: OLS Regression with Village and Time-Fixed Effects", header=FALSE)
+```
+
+```{r anyDisease_RoadDist, fig.width=3, echo=FALSE, results='asis'}
+stargazer(plm.4, plm.5, plm.6, title="Road Distance and Incidence of Any Disease: OLS Regression with Village and Time-Fixed Effects", header=FALSE)
+```
+
+# Appendix
+
+# TO-DO's
+
+ * Introduction should contain the "ROAD MAP" section
+ 
+ * Write abstract
 
  * (maybe do it in the RESULTS section) Additionally, to control for road-induced migration, the data can be subsetted for people who have lived in the current village for over 7 years. This means that they would partake in both the 2005 and 2012 surveys.
 
