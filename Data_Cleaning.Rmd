@@ -514,13 +514,8 @@ rm(TO2005begin, TO2005end, TO2012begin, TO2012end, SC2005begin, SC2005end, SC201
 
 
 
-HH2005Controls <- c("URBAN", "INCOME", "ID13", "ID16","SA4", "FU1", "FU1A", "WA1")
-HH2012Controls <- c("URBAN2011", "INCOME", "ID13", "ID15", "SA4", "FU1", "FU1A", "WA1A")
-
-
-# 2. replace values less than 0 (survey error values) with NA.
-HH2005[,HH2005Controls] <- lapply(HH2005[, HH2005Controls], function(x) replace(x, x %in% -7:-1, NA))
-HH2012[,HH2012Controls] <- lapply(HH2012[, HH2012Controls], function(x) replace(x, x %in% -7:-1, NA))
+HH2005Controls <- c("URBAN", "INCOME", "ID13", "ID16","SA4", "FU1", "FU1A", "WA1", "QC1")
+HH2012Controls <- c("URBAN2011", "INCOME", "ID13", "ID15", "SA4", "FU1", "FU1A", "WA1A", "QC1")
 
 
 # 3. Extract values from 2005 and 2012 data cause of its dumb format
@@ -529,24 +524,37 @@ HH2005$ID13 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$ID13)))
 HH2005$SA4 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$SA4)))
 HH2005$FU1 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$FU1)))
 HH2005$WA1 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$WA1)))
+HH2005$QC1 <- as.numeric(sub("\\).*", "", sub(".*\\(", "", HH2005$QC1)))
+
 
 HH2012$URBAN2011 <- as.numeric(str_sub(HH2012$URBAN2011,-1,-1))
 HH2012$ID13 <- as.numeric(str_sub(HH2012$ID13,-1,-1))
 HH2012$SA4 <- as.numeric(str_sub(HH2012$SA4, 2, 2))
 HH2012$FU1 <- as.numeric(str_sub(HH2012$FU1,-1,-1))
 HH2012$WA1A <- as.numeric(str_sub(HH2012$WA1A,-2,-1))
+HH2012$QC1 <- as.numeric(str_sub(HH2012$QC1,-2,-1))
+
+
+# 2. replace values less than 0 (survey error values) with NA.
+HH2005[,HH2005Controls] <- lapply(HH2005[, HH2005Controls], function(x) replace(x, x %in% -7:-1, NA))
+HH2012[,HH2012Controls] <- lapply(HH2012[, HH2012Controls], function(x) replace(x, x %in% -7:-1, NA))
 
 #convert owning toilet from categorical to binary
 HH2005$SA4 <- ifelse(HH2005$SA4 > 0, 1, 0)
 HH2012$SA4 <- ifelse(HH2012$SA4 > 1, 1, 0)
+
+#convert if seen doctor from cat to binary
+HH2005$QC1 <- ifelse(HH2005$QC1 > 0, 1, 0)
+HH2012$QC1 <- ifelse(HH2012$QC1 > 0, 1, 0)
+
 
 # 4. Aggregate data to village level
 VilInd2005 <- aggregate(HH2005[ ,HH2005Controls], by=list(HH2005$id), FUN=mean, na.rm=TRUE)
 VilInd2012 <- aggregate(HH2012[ ,HH2012Controls], by=list(HH2012$id), FUN=mean, na.rm=TRUE)
 
 # 5. Rename Variables
-VilInd2005 <- rename(VilInd2005, c("Group.1"="id", "URBAN"="urban", "INCOME"="income", "ID13"="caste", "ID16"="yearsLivingHere","SA4"="ownToilet", "FU1"="electricity", "FU1A"="electricityHours", "WA1"="drinkingWaterSource"))
-VilInd2012 <- rename(VilInd2012, c("Group.1"="id", "URBAN2011"="urban", "INCOME"="income", "ID13"="caste", "ID15"="yearsLivingHere","SA4"="ownToilet", "FU1"="electricity", "FU1A"="electricityHours", "WA1A"="drinkingWaterSource"))
+VilInd2005 <- rename(VilInd2005, c("Group.1"="id", "URBAN"="urban", "INCOME"="income", "ID13"="caste", "ID16"="yearsLivingHere","SA4"="ownToilet", "FU1"="electricity", "FU1A"="electricityHours", "WA1"="drinkingWaterSource", "QC1"="seenDoctor"))
+VilInd2012 <- rename(VilInd2012, c("Group.1"="id", "URBAN2011"="urban", "INCOME"="income", "ID13"="caste", "ID15"="yearsLivingHere","SA4"="ownToilet", "FU1"="electricity", "FU1A"="electricityHours", "WA1A"="drinkingWaterSource", "QC1"="seenDoctor"))
 
 # 5. decided to drop own
 

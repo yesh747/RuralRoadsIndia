@@ -65,15 +65,15 @@ ggplot(data=dfNoRoad, aes(x=distanceToPavedRoad, y=mbAnyDisease, color=year)) + 
 ```{r regAnyDisease1, results='asis', echo=FALSE, message=FALSE}
 
 plm.1 <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model="within")
-plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco, index = c("id", "year"), model="within")
-plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + caste.Brahmin, index = c("id", "year"), model="within")
+plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + seenDoctor, index = c("id", "year"), model="within")
+plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + caste.Brahmin + seenDoctor, index = c("id", "year"), model="within")
 
 plm.4 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad, index = c("id", "year"), model="within")
-plm.5 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + income + illiterate + smokeTobacco, index = c("id", "year"), model="within")
-plm.6 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + income + illiterate + smokeTobacco + ownToilet + electricity + caste.Brahmin, index = c("id", "year"), model="within")
+plm.5 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + income + illiterate + smokeTobacco + seenDoctor, index = c("id", "year"), model="within")
+plm.6 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + income + illiterate + smokeTobacco + ownToilet + electricity + caste.Brahmin + seenDoctor, index = c("id", "year"), model="within")
 
-stargazer(plm.1, plm.2, plm.3, header=FALSE)
-stargazer(plm.4, plm.5, plm.6, header=FALSE)
+stargazer(plm.1, plm.2, plm.3, header=FALSE, type="text")
+stargazer(plm.4, plm.5, plm.6, header=FALSE, type="text")
 ```
 
 ## Village Controls
@@ -115,12 +115,12 @@ stargazer(plm.6, plm.7, plm.8, header=FALSE)
 plm.1 <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model="within")
 plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + income + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + primaryHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model="within")
 plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + illiterate + smokeTobacco + ownToilet + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model="within")
-plm.4 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + primaryHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model="within")
+plm.4 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + primaryHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown + seenDoctor, index = c("id", "year"), model="within")
 
 plm.5 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad, index = c("id", "year"), model="within")
 plm.6 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + income + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + primaryHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model="within")
 plm.7 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + illiterate + smokeTobacco + ownToilet + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model="within")
-plm.8 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + income + illiterate + smokeTobacco + ownToilet + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + primaryHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model="within")
+plm.8 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistanceToPavedRoad + income + illiterate + smokeTobacco + ownToilet + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + primaryHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown + seenDoctor, index = c("id", "year"), model="within")
 
 
 stargazer(plm.2, plm.3, plm.4, header=FALSE)
@@ -139,7 +139,6 @@ plm.5 <- plm(data=dfNoRoad, mbComDisease ~ lnDistanceToPavedRoad, index = c("id"
 plm.6 <- plm(data=dfNoRoad, mbComDisease ~ lnDistanceToPavedRoad + income + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + primaryHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model="within")
 plm.7 <- plm(data=dfNoRoad, mbComDisease ~ lnDistanceToPavedRoad + illiterate + smokeTobacco + ownToilet + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model="within")
 plm.8 <- plm(data=dfNoRoad, mbComDisease ~ lnDistanceToPavedRoad + income + illiterate + smokeTobacco + ownToilet + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + primaryHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, index = c("id", "year"), model="within")
-
 
 stargazer(plm.2, plm.3, plm.4, header=FALSE)
 stargazer(plm.6, plm.7, plm.8, header=FALSE)
@@ -180,6 +179,26 @@ stargazer(plm.2, plm.3, plm.4, header=FALSE)
 stargazer(plm.6, plm.7, plm.8, header=FALSE)
 ```
 
+```{r alldisease, echo=FALSE}
+mbStart <- which(colnames(df) == "mbCataract")
+mbEnd <- which(colnames(df) == "mbSTDorAIDS")
+
+diseases <- colnames(df[,mbStart:mbEnd])
+
+plm.mb <- list()
+plm.mb.hc1 <- list()
+for (disease in diseases) {
+  plm.mb[disease] <- list(plm(df[,disease] ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + ImmunizationCampaignsNumber + drinkingWaterSource.Piped + primaryHealthCenter + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown, data=df, index = c("id", "year"), model = "within"))
+  
+  # generate robust standard errors
+  plm.mb.hc1[disease] <- list(coeftest(plm.mb[[disease]], function(x) vcovHC(x, type="HC1")))
+}
+
+stargazer(plm.mb[diseases[1:6]], se=plm.mb.hc1[diseases[1:6]]["Std. Error"], type = "text", column.labels=diseases, title="Results", 
+          digits = 8, align = TRUE)
+stargazer(plm.mb[diseases[7:13]], se=plm.mb.hc1[diseases[7:13]]["Std. Error"], type = "text", column.labels=diseases, title="Results", 
+          digits = 8, align = TRUE)
+```
 
 
 --------------------------------------------------------------------------------------------------
@@ -207,10 +226,6 @@ stargazer(plm.6, plm.7, plm.8, header=FALSE)
 lm <- lm(data=df, mbAnyDisease ~ roadPaved + ImmunizationCampaignsNumber + mbTreatmentRecieved + mbCostOfTreatment + mbTravelExpenses + smokeTobacco + chewTobacco + drinkAlcohol + illiterate + attendedSchool + income + ownToilet + electricity + healthSubCenter + primaryHealthCenter + communityHealthCenter + govtMaternityCenter + pvtClinicTrainedDoc + pvtClinicUntrainedDoc + pvtHospital + pvtPharm + otherGovtMedFacility + distHealthSubCenter + distPrimaryHealthCenter + distCommunityHealthCenter + distDistrictHospital + distGovtMaternityCenter + distPvtClinicTrainedDoc + distPvtClinicUntrainedDoc + distPvtHospital + distPvtPharm + distOtherGovtMedFacility + caste.Brahmin + caste.OBC + caste.SC + caste.ST + drinkingWaterSource.Piped + drinkingWaterSource.TubeWell + drinkingWaterSource.HandPump + drinkingWaterSource.OpenWell + drinkingWaterSource.CoveredWell + drinkingWaterSource.River + drinkingWaterSource.Pond + drinkingWaterSource.Truck + drinkingWaterSource.RainWater + drinkingWaterSource.Bottled + drinkingWaterSource.Other + mbTreatmentWho1.NA + mbTreatmentWho1.PublicDoc + mbTreatmentWho1.PublicDocInPvt + mbTreatmentWho1.PvtDoc + mbTreatmentWho1.Pharm + mbTreatmentWhere1.NA + mbTreatmentWhere1.SameVillage + mbTreatmentWhere1.AnotherVillage + mbTreatmentWhere1.OtherTown + mbTreatmentWhere1.DistrictTown + mbTreatmentWho2.NA + mbTreatmentWho2.PublicDoc + mbTreatmentWho2.PublicDocInPvt + mbTreatmentWho2.PvtDoc + mbTreatmentWho2.Pharm + mbTreatmentWhere2.NA + mbTreatmentWhere2.SameVillage + mbTreatmentWhere2.AnotherVillage + mbTreatmentWhere2.OtherTown + mbTreatmentWhere2.DistrictTown)
 lm.hc1 <- coeftest(lm, vcov=vcovHC(lm, "HC1"))
 ```
-
-
-
-
 
 
 
