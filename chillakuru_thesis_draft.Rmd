@@ -20,9 +20,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 
 # regressions: robust and panel
-library(MASS)
 library(plm)
-library(foreign)
+# library(foreign)
 library(sandwich)
 library(lmtest)
 library(stargazer)
@@ -32,7 +31,6 @@ library(dplyr)
 library(tidyr)
 
 # other
-library(memisc)
 library(pander)
 library(knitr)
 ```
@@ -59,6 +57,14 @@ dfMerge <- merge(df2005, df2012, by="id")
 df$year <- as.factor(df$year)
 dfNoRoad$year <- as.factor(dfNoRoad$year)
 ```
+
+```{r renameVariables, echo=FALSE, include=FALSE}
+df <- rename(df, ImmuniCamps=ImmunizationCampaignsNumber, PctPipedWater = drinkingWaterSource.Piped, Treat.SameVil = mbTreatmentWhere1.SameVillage, Treat.OthrVil=mbTreatmentWhere1.AnotherVillage, Treat.OthrTwn=mbTreatmentWhere1.OtherTown, Treat.DstrctTwn=mbTreatmentWhere1.DistrictTown, primaryHealthCntr=primaryHealthCenter)
+
+dfNoRoad <- rename(dfNoRoad, ImmuniCamps=ImmunizationCampaignsNumber, PctPipedWater = drinkingWaterSource.Piped, Treat.SameVil = mbTreatmentWhere1.SameVillage, Treat.OthrVil=mbTreatmentWhere1.AnotherVillage, Treat.OthrTwn=mbTreatmentWhere1.OtherTown, Treat.DstrctTwn=mbTreatmentWhere1.DistrictTown, primaryHealthCntr=primaryHealthCenter, lnDistToPvdRd = lnDistanceToPavedRoad)
+
+```
+
 
 \newpage
 
@@ -147,9 +153,9 @@ ggplot(data=dfNoRoad, aes(x=distanceToPavedRoad, y=mbAnyDisease, color=year)) + 
 
 \qquad Two OLS regressions models with time and village-fixed effects will be used to analyze the impact of road expansion on incidence of disease:
 
-1. $diseaseIncidence_{it} = \beta RoadPaved_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it}$
+$$diseaseIncidence_{it} = \beta RoadPaved_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it} \tag{2}$$
  
-2. $diseaseIncidence_{it} = \beta ln(DistanceToPavedRoad)_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it}$
+$$diseaseIncidence_{it} = \beta ln(DistanceToPavedRoad)_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it} \tag{2}$$
  
  $diseaseIncidence$ is the percent of villagers in village $i$ during year $t$ ($t$ is 2005 or 2012) that fall into one of three disease categories:
  
@@ -159,20 +165,41 @@ ggplot(data=dfNoRoad, aes(x=distanceToPavedRoad, y=mbAnyDisease, color=year)) + 
 
 $Household_{it}$ represents village-level controls of household characteristics, such as income and electricity access, aggregated to the corresponding village of the household. $Village_{it}$ represents controls for characteristics of the village, such as number of primary health centers in village or the number of immunization campaigns for polio conducted in the village in the past year. $Medical_{it}$ represents village-level controls for where individuals in that village go for treatment, such as same village or different village, and for who individuals seek treatment, such private doctor or public doctor. $\gamma_{it}$ represents village fixed effects, and $\varepsilon_{it}$ is the error term. 
 
-The only difference between Models 1 and 2 is the primary indepedent variable of interest: $RoadPaved_{it}$ vs $ln(DistanceToPavedRoad)_{it}$. Model 1 allows us to understand the impact of how introducing a paved road affects $diseaseIncidence_{it}$, while Model 2 allows us to understand how becoming closer to a road for villages with no paved road can improve $diseaseIncidedence_{it}$. $roadPaved_{it}$ indicates if there is or is not a paved road in the village. $ln(DistanceToPavedRoad)_{it}$ indicates the natural log distance to the nearest paved for villages without a paved road. Model 2 is only applied to villages without a paved road to separate the effects of road being present or not versus improvement in distance to the road.
+The only difference between Models 1 and 2 is the primary indepedent variable of interest: $RoadPaved_{it}$ vs $ln(DistanceToPavedRoad)_{it}$. Equation (1) allows us to understand the impact of how introducing a paved road affects $diseaseIncidence_{it}$, while Equation (2) allows us to understand how becoming closer to a road for villages with no paved road can improve $diseaseIncidedence_{it}$. $roadPaved_{it}$ indicates if there is or is not a paved road in the village. $ln(DistanceToPavedRoad)_{it}$ indicates the natural log distance to the nearest paved for villages without a paved road. Model 2 is only applied to villages without a paved road to separate the effects of road being present or not versus improvement in distance to the road.
 
 Simultaneous causality may present a problem in the current model. Individuals may move to areas where roads are built to improve economic opportunities. This may increase risk of communicability, similar to Djemai’s study, where high-risk mobile groups increased HIV risk in areas closer to roads. To isolate the impact of increased communicability on disease incidence, I performed seperate regressions for communicable vs non-communicable diseaes. For example, if road access is bringing high-risk groups, who partake in risky sexual behavior, STD/HIV incidence would increase, while non-communicable diseases, like mental illness would not be effected.
 
 Another issue with simultaneous causality is that villages with higher incomes and larger populations could be more likely to receive roads. Therefore, road placement may not be random. The PMGSY program is run at the national, and not state or district, level, and is less prone to influence of local village-level politics.
 
-The time and village-fixed effects allowed to account for several potentials areas of omitted variable bias. One concern may 
-
-
-However, if road expansion spreads from developed urban to less-developed rural areas, non-random road placement is still a concern. To ensure robustness, the relationship of income and village population on improved road access from 2005 to 2012 can be assessed separately by univariate regressions. If a significant relationship exists between either income and roads or population and roads, the villages can be separated into separate income and population brackets, and the original regression model can be applied to each subset of villages to check for robustness.
-
+The time and village-fixed effects allowed to account for several potentials areas of omitted variable bias. Differences between villages in healthcare technology and access and sanitation infrastructure may arise non-randomly as villages near urban areas may benefit from spillover effects and earlier development. However, this is adjusted for by village-fixed effects. Similarly, healthcare technology and sanitation infrastructure may improve from 2005 to 2012 in villages, but again this are accounted for in time-fixed effects.
 
 # Results
 
+```{r anyDisease, fig.width=3, include=FALSE, results='asis'}
+
+plm.1 <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model="within")
+plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn + seenDoctor, index = c("id", "year"), model="within")
+
+
+plm.4 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.5 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), modsel="within")
+plm.6 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn + seenDoctor, index = c("id", "year"), model="within")
+
+stargazer(plm.1, plm.2, plm.3, type="text", header=FALSE)
+stargazer(plm.4, plm.5, plm.6, type="text", header=FALSE)
+
+```
+
+## Road Paved vs Road Unpaved
+```{r anyDisease_RoadPaved, fig.width=3, echo=FALSE, results='asis'}
+stargazer(plm.1, plm.2, plm.3, header=FALSE)
+```
+
+## Distance to Nearest Road
+```{r anyDisease_RoadDist, fig.width=3, echo=FALSE, results='asis'}
+stargazer(plm.4, plm.5, plm.6, header=FALSE)
+```
 
 
 # Robustness Checks
