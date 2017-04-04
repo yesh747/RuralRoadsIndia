@@ -130,7 +130,7 @@ rm(startDis, endDis, disease)
 
 
 
-From the survey data, the impact of PGMSY on rural India can be seen. In 2005, `r round(pctPvdRd05,2)`% of villages in the IHDS survey had paved roads, but in 2012, `r round(pctPvdRd12,2)`%had paved roads. Additionally, for villages without paved roads, the closest paved road was `r round(avgDistRd2005,2)` km away on average in 2005, but only `r round(avgDistRd2012,2)` km away on average in 2012. Disease morbidity increased from 2005 to 2012 for all diseases in the dataset, except STD/AIDS, which remained the same (Table 1).
+From the survey data, the impact of PGMSY on rural India can be seen. In 2005, `r round(pctPvdRd05,2)`% of villages in the IHDS survey had paved roads, but in 2012, `r round(pctPvdRd12,2)`%had paved roads. Additionally, for villages without paved roads, the closest paved road was `r round(avgDistRd2005,2)` km away on average in 2005, but only `r round(avgDistRd2012,2)` km away on average in 2012. Disease morbidity increased from 2005 to 2012 for all diseases in the dataset, except STD/AIDS, which remained approximately the same (Table 1 and Table 2).
 
 A plausible explanation for this may be improved diagnosis from medical campaigns. A simple analysis examining “Percentage of Village with Any Disease vs Distance to Road” reveals a negative relationship between distanceToPavedRoad and mbAnyDisease in 2005 but a positive relationship in 2012. The 2005 correlation opposes the prevailing notion that roads access would reduce disease incidence, but may be attributed to increased diagnosis.
 
@@ -169,52 +169,159 @@ The time and village-fixed effects allowed to account for several potentials are
 plm.1 <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model="within")
 plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
 plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
+r.se.1 <- sqrt(diag(vcovHC(plm.1, type = "HC1")))
+r.se.2 <- sqrt(diag(vcovHC(plm.2, type = "HC1")))
+r.se.3 <- sqrt(diag(vcovHC(plm.3, type = "HC1")))
 
 
 plm.4 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd, index = c("id", "year"), model="within")
 plm.5 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), modsel="within")
 plm.6 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
+r.se.4 <- sqrt(diag(vcovHC(plm.4, type = "HC1")))
+r.se.5 <- sqrt(diag(vcovHC(plm.5, type = "HC1")))
+r.se.6 <- sqrt(diag(vcovHC(plm.6, type = "HC1")))
 
-stargazer(plm.1, plm.2, plm.3, type="text", header=FALSE)
-stargazer(plm.4, plm.5, plm.6, type="text", header=FALSE)
+stargazer(plm.1, plm.2, plm.3, se=list(r.se.1, r.se.2, r.se.3), title="Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+stargazer(plm.4, plm.5, plm.6, se=list(r.se.4, r.se.5, r.se.6),title="Road Distance and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+```
 
+```{r comDisease, fig.width=3, include=FALSE, results='asis'}
+
+plm.7 <- plm(data=df, mbComDisease ~ roadPaved, index = c("id", "year"), model="within")
+plm.8 <- plm(data=df, mbComDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.9 <- plm(data=df, mbComDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
+r.se.7 <- sqrt(diag(vcovHC(plm.7, type = "HC1")))
+r.se.8 <- sqrt(diag(vcovHC(plm.8, type = "HC1")))
+r.se.9 <- sqrt(diag(vcovHC(plm.9, type = "HC1")))
+
+
+plm.10 <- plm(data=dfNoRoad, mbComDisease ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.11 <- plm(data=dfNoRoad, mbComDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.12 <- plm(data=dfNoRoad, mbComDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
+r.se.10 <- sqrt(diag(vcovHC(plm.10, type = "HC1")))
+r.se.11 <- sqrt(diag(vcovHC(plm.11, type = "HC1")))
+r.se.12 <- sqrt(diag(vcovHC(plm.12, type = "HC1")))
+
+stargazer(plm.7, plm.8, plm.9, se=list(r.se.7, r.se.8, r.se.9), title="Road Paved and Incidence of Communicable Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+stargazer(plm.10, plm.11, plm.12, se=list(r.se.10, r.se.11, r.se.12),title="Road Distance and Incidence of Communicable Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+```
+
+```{r nonComDisease, fig.width=3, include=FALSE, results='asis'}
+
+plm.13 <- plm(data=df, mbNonComDisease ~ roadPaved, index = c("id", "year"), model="within")
+plm.14 <- plm(data=df, mbNonComDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.15 <- plm(data=df, mbNonComDisease ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
+r.se.13 <- sqrt(diag(vcovHC(plm.13, type = "HC1")))
+r.se.14 <- sqrt(diag(vcovHC(plm.14, type = "HC1")))
+r.se.15 <- sqrt(diag(vcovHC(plm.15, type = "HC1")))
+
+
+plm.16 <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.17 <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.18 <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
+r.se.16 <- sqrt(diag(vcovHC(plm.16, type = "HC1")))
+r.se.17 <- sqrt(diag(vcovHC(plm.17, type = "HC1")))
+r.se.18 <- sqrt(diag(vcovHC(plm.18, type = "HC1")))
+
+stargazer(plm.13, plm.14, plm.15, se=list(r.se.13, r.se.14, r.se.15), title="Road Paved and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+stargazer(plm.16, plm.17, plm.18, se=list(r.se.16, r.se.17, r.se.18),title="Road Distance and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+```
+
+```{r STDorHIV, fig.width=3, include=FALSE, results='asis'}
+
+plm.19 <- plm(data=df, mbSTDorAIDS ~ roadPaved, index = c("id", "year"), model="within")
+plm.20 <- plm(data=df, mbSTDorAIDS ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.21 <- plm(data=df, mbSTDorAIDS ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
+r.se.19 <- sqrt(diag(vcovHC(plm.19, type = "HC1")))
+r.se.20 <- sqrt(diag(vcovHC(plm.20, type = "HC1")))
+r.se.21 <- sqrt(diag(vcovHC(plm.21, type = "HC1")))
+
+
+plm.22 <- plm(data=dfNoRoad, mbSTDorAIDS ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.23 <- plm(data=dfNoRoad, mbSTDorAIDS ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.24 <- plm(data=dfNoRoad, mbSTDorAIDS ~ lnDistToPvdRd + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
+r.se.22 <- sqrt(diag(vcovHC(plm.22, type = "HC1")))
+r.se.23 <- sqrt(diag(vcovHC(plm.23, type = "HC1")))
+r.se.24 <- sqrt(diag(vcovHC(plm.24, type = "HC1")))
+
+stargazer(plm.19, plm.20, plm.21, se=list(r.se.19, r.se.20, r.se.21), title="Road Paved and Incidence of STD/AIDS: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+stargazer(plm.22, plm.23, plm.24, se=list(r.se.22, r.se.23, r.se.24),title="Road Distance and Incidence of STD/AIDS: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
 ```
 
 ## General Disease Incidence and Roads
 
-\qquad Table 3 presents the results for Equation (1) for percentage of villagers with at least one of the 14 major morbidity diseases (mbAnyDisease). A positive correlation initially exists at the 10% significance level (Table 3: Regression 2) between having a paved road and when controlling for $Household_{it}$ variables (income: average income of village, illiterate: percentage of villagers that can read or write, smokeTobacco: percentage of villagers that smoke, electricity: percentage of villagers with electricity, ownToilet: percentage of villagers own a toilet, seenDoctor: percentage of villagers who have seen a doctor in the past 5 years for a non-major morbidity disease). In Table 3: Regression 2, villages with a paved road have a `r round(plm.2$coefficients['roadPaved'],3)` percentage points increase in the percent of their population sick with on the 14 diseases. However, the weak level of significance (10%) and combined results of Table 3: Regression 3 support concluding that introduction of a paved road has no signficant impact on `mbAnyDisease. Table 3: Regression 3 includes $Medical_{it}$ controls where individuals sought treatment when sick with the disease (Treat.SameVil: percentage of villagers that sought treatment in the same village, Treat.OthrVil: percentage of villagers that sought treatment in a different village, Treat.OthrTwn: percentage of villagers that sought treatment in a larger town, Treat.DstrctTwn: percentage of villagers that sought treatment in the large district town). When controlling for treatment location, the effect of having a paved road in the village and all $Household_{it}$ and $Village_{it}$ controls become insignificant.
+\qquad Table 3 presents the results for Equation (1) for percentage of villagers with at least one of the 14 major morbidity diseases ($diseaseIncidence_{it} = mbAnyDisease_{it}$). A positive correlation initially exists at the 10% significance level (Table 3: Regression 2) between having a paved road and when controlling for $Household_{it}$ variables (income: average income of village, illiterate: percentage of villagers that can read or write, smokeTobacco: percentage of villagers that smoke, electricity: percentage of villagers with electricity, ownToilet: percentage of villagers own a toilet, seenDoctor: percentage of villagers who have seen a doctor in the past 5 years for a non-major morbidity disease). In Table 3: Regression 2, villages with a paved road have a `r round(plm.2$coefficients['roadPaved'],3)` percentage points increase in the percent of their population sick with on the 14 diseases. However, the weak level of significance (10%) and combined results of Table 3: Regression 3 support concluding that introduction of a paved road has no signficant impact on `mbAnyDisease. Table 3: Regression 3 includes $Medical_{it}$ controls where individuals sought treatment when sick with the disease (Treat.SameVil: percentage of villagers that sought treatment in the same village, Treat.OthrVil: percentage of villagers that sought treatment in a different village, Treat.OthrTwn: percentage of villagers that sought treatment in a larger town, Treat.DstrctTwn: percentage of villagers that sought treatment in the large district town). When controlling for treatment location, the effect of having a paved road in the village and all $Household_{it}$ and $Village_{it}$ controls become insignificant.
 
-Table 4 presents data for Equation (2) in relation 
- - TODO: Talk about suprigins finding by comparing it to Djemai paper.
+Table 4 presents data for Equation (2) for incidence of any disease ($diseaseIncidence_{it} = mbAnyDisease_{it}$). For villages without a paved road, increasing distance to the paved road has significant relationship with disease incidence, regardless of controls. Even among our controls, the only ones significant were the location where individuals sought out treatment. These non-significant finds are suprising, but important nonetheless because the fly in contridiction to the results of Djemai (2011) and the claims of Ministry of Rural Development in India. Analysis on disease categories and individual diseases will help develop a more comprehensive understanding the interactions between disease incidence and road expansion.
 
 ## Communicable Disease Incidence and Roads
 
+\qquad Communicable and non-communicable disease act through different channels, and Djemai (2011) and Tatem et al. (2006) have shown that roads and transportation infrastructure expansion strongly contribute to the spread of communicable disease. Table 5 and Table 6 detail the analysis of Equations (1) and (2), respectively, on incidence of communicable diseases ($diseaseIncidence_{it} = mbComDisease_{it}$), which are defined here as STD/AIDS, polio, or tuberculosis. Opposite to expectations, roads in both Equations (1) and (2) have no net impact on communicable disease.However, the some treatment location variables were found to be significant in Table 5: Regression 3, just as occurred when $diseaseIncidence_{it} = mbAnyDisease_{it}$. 
 
 ## Non-Communicable Disease Incidence and Roads
-
+Tables 7 and 8 present results from analysis of Equations (1) and (2), respectively, on incidence of non-communicable diseases ($diseaseIncidence_{it} = mbNonComDisease_{it}$). Similar to previous results thus far, road expansion appears to have no significant effect on incidence of non-communicable disease, while again the only significant controls are where individuals sought treatment (Treat.OthrTwn and Treat.DstrctTwn).
 
 ## STD/AIDS Incidence and Roads
 
+In order to make a direct comparison to Djemai's results on the positive correlation between distance to paved road and HIV Incidence, I applied Equations (1) and (2) to STD/AIDS incidence. Tables 9 and 10, respectively detail these results. Similar to Djemai, we control for education (literacy rate) and income, while also controlling for treatment location, immunization campaigns, and sanitary conditions (owning a toilet in home). The models in this paper lack controls for marriage, gender, HIV/knowledge, and age, primarily because our unit of observation is at the village level, while Djemai's is at the individual level. Due to lack fof GPS coordinate, I am unable to replicate Djemai's istrumental variables methods using terrain ruggedness and gradient, but our analysis uses time-fixed and village-fixed effects, whereas Djemai could only use regional-fixed effects. Both analysis have the drawbacks and strengths, but the results in Tables 9 and 10 show that raods have no effect on STD/HIV incidence, in disagreement with Djemai's results.
 
 # Robustness Checks
 
+\qquad The 
+
+TODO:
+
+ * Subset data for migration of individuals.
+ * Regression for each individual disease
+ * Look at Literature for treatment location
+ * Look at roads impact on days incapacitated
+ * Control for other things
+
+
 # Conclusion
+
 
 # Tables
 
 ```{r dataTables, echo=FALSE, results='asis', size = 'tiny'}
-kable(diseaseMeansDF[,1:7], caption="Average Percent of Villagers in each Village with Disease")
 
-kable(diseaseMeansDF[,c(1,8:14)], caption="Average Percent of Villagers in each Village with Disease (cont.)")
+diseaseNames <- append(diseaseNames, c('mbAnyDisease', 'mbComDisease', 'mbNonComDisease'))
+
+df_disease2005 <- df2005[, diseaseNames]
+df_disease2012 <- df2012[, diseaseNames]
+
+stargazer(df_disease2005, title="2005 Summary Statistics: Disease Incidence (Pct of village) 2005", header = FALSE)
+
+stargazer(df_disease2012, title="2012 Summary Statistics: Disease Incidence (Pct of village)", header = FALSE)
+
+# kable(diseaseMeansDF[,1:7], caption="Average Percent of Villagers in each Village with Disease:")
+# 
+# kable(diseaseMeansDF[,c(1,8:14)], caption="Average Percent of Villagers in each Village with Disease:")
 ```
 
-```{r anyDisease_RoadPaved, fig.width=3, echo=FALSE, results='asis'}
-stargazer(plm.1, plm.2, plm.3, title="Road Paved and Incidence of Any Disease: OLS Regression with Village and Time-Fixed Effects", header=FALSE)
+```{r anyDiseaseOut, fig.width=3, echo=FALSE, results='asis'}
+stargazer(plm.1, plm.2, plm.3, se=list(r.se.1, r.se.2, r.se.3), title="Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
+
+stargazer(plm.4, plm.5, plm.6, se=list(r.se.4, r.se.5, r.se.6),title="Road Distance and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
 ```
 
-```{r anyDisease_RoadDist, fig.width=3, echo=FALSE, results='asis'}
-stargazer(plm.4, plm.5, plm.6, title="Road Distance and Incidence of Any Disease: OLS Regression with Village and Time-Fixed Effects", header=FALSE)
+```{r comDiseaseOut, fig.width=3, echo=FALSE, results='asis'}
+stargazer(plm.7, plm.8, plm.9, se=list(r.se.7, r.se.8, r.se.9), title="Road Paved and Incidence of Communicable Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
+
+stargazer(plm.10, plm.11, plm.12, se=list(r.se.10, r.se.11, r.se.12),title="Road Distance and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
 ```
+
+```{r nonComDiseaseOut, fig.width=3, echo=FALSE, results='asis'}
+stargazer(plm.13, plm.14, plm.15, se=list(r.se.13, r.se.14, r.se.15), title="Road Paved and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
+stargazer(plm.16, plm.17, plm.18, se=list(r.se.16, r.se.17, r.se.18),title="Road Distance and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
+```
+
+```{r STDorAIDSOut, fig.width=3, echo=FALSE, results='asis'}
+stargazer(plm.19, plm.20, plm.21, se=list(r.se.19, r.se.20, r.se.21), title="Road Paved and Incidence of STD/AIDS: OLS with Village and Time-Fixed Effects", header=FALSE)
+stargazer(plm.22, plm.23, plm.24, se=list(r.se.22, r.se.23, r.se.24), title="Road Distance and Incidence of STD/AIDS: OLS with Village and Time-Fixed Effects", header=FALSE)
+```
+
+
 
 # Appendix
 
