@@ -1,5 +1,5 @@
 ---
-title: "The Effects of Road Access on Health Outcomes in Rural India"
+title: "The Effects of Road Access on Disease Incidence in Rural India"
 author: | 
   | Yeshwant Chillakuru
   | Department of Economics, The George Washington University
@@ -10,7 +10,7 @@ output:
 header-includes:
   - \usepackage{setspace}\doublespacing
   - \setlength{\parindent}{2em}
-abstract: 'This is my abstract.'
+abstract: 'Using data from the Indian Human Development Survey, the effect of road expansion on disease incidence in rural India was estimated at the village-level. Having a paved road and proximity to a paved road for villages without a paved road had no impact on percent of villagers sick with any of the fourteen diseases surveyed. Roads had no impact on disease incidence for categories of communicable and non-communicable diseases or for any individual disease except cancer. Having a paved road, increased the percent of villagers with cancer by 0.064 percentage points. Results are robust with village and time-fixed effects.'
 ---
 
 ```{r setup, include=FALSE}
@@ -311,7 +311,7 @@ stargazer(plm.daysInc.1, plm.daysInc.2, plm.daysInc.3, plm.daysInc.4, plm.daysIn
 ```
 
 
-\qquad This analysis examined major groups of the diseases collected by the IHDS. However, when applying Equation (1) to each of the 14 individual disease, the analysis confirmed the relationship that roads have no significant impact on any of the individual health outcomes (Tables 7, 8, and 9), except for cancer, which was significant at the 5% level (Table 8: Regression 3). A positive relationship between presence of a paved road and incidence of cancer exists, where a paved roads is correlated to a `r plm.mb[['mbCancer']]$coefficients['roadPaved']` percentage point increase in the percentof villagers with cancer.
+\qquad This analysis examined major groups of the diseases collected by the IHDS. However, when applying Equation (1) to each of the 14 individual disease, the analysis confirmed the relationship that roads have no significant impact on any of the individual health outcomes (Tables 7, 8, and 9), except for cancer, which was significant at the 5% level (Table 8: Regression 3). A positive relationship between presence of a paved road and incidence of cancer exists, where having a paved roads is correlated to a `r round(plm.mb[['mbCancer']]$coefficients['roadPaved'],3)` percentage point increase in the percent of villagers with cancer.
 
 A strange facet of the analysis is the significance of the treatment location, specifically whether an individual recieved treatment in the same village or elsewhere. Initially, this may be interpreted as individuals who are treated, whether in the same village or elsewhere, will have better health outcomes, compared to not being treated at all. To, the seenDoctor variable captures the percent of villagers who have been to a doctor in the past 5 years for a non-major morbidity disease. This variable would otherwise capture variations in seeing the doctor in villages across years, a potential effect of improved education and health awareness campaigns in rural India. Yet, the seenDoctor variable was not significant in nearly an regression result. Another pausible explanation for the significance of treatment location is that other villages may have better or more health facilities. However, a control variable for the number of Primary Health Centers (primaryHealthCntr) in each village in both 2005 and 2012. The Ministry of Health and Family Welfare of the Government of India (2016) launched the Natural Rural Health Mission in 2005 to improve healthcare in rural India, which included expanding the number of Primary Health Centers, state owned health clinics. The significance of treatment location may be a statistically anomoly or the result of a psychological force where individuals who seek treatment more often are in general healthier because they are more conscious of their health. Little exists on the impact of road infrastructure on health outcomes in rural India, and even less exists on treatment location.
 
@@ -397,13 +397,26 @@ stargazer(plm.mb[diseases[10:14]], se=plm.mb.hc1[diseases[10:14]]["Std. Error"],
 ```{r robust_daysIncOut, fig.width=3, echo=FALSE, results='asis', fontsize='6pt'}
 stargazer(plm.daysInc.1, plm.daysInc.2, plm.daysInc.3, plm.daysInc.4, plm.daysInc.5, plm.daysInc.6, se=list(r.se.daysInc.1, r.se.daysInc.2, r.se.daysInc.3, r.se.daysInc.4, r.se.daysInc.5, r.se.daysInc.6), header=FALSE, title="Road and Days Incapacitated Due To Illness: OLS with Village and Time-fixed Effects", omit.stat = c("f"))
 ```
+\newpage
 # Appendix
 
-# TO-DO's
+\qquad All prelimary data cleaning code and exploratory data analysis can be viewed at https://github.com/yesh747/RuralRoadsIndia. Instruction on navigating these files on be found directly on the github.
 
- * Introduction should contain the "ROAD MAP" section
- * Report descriptive statistics for independent variables
- * Write abstract
+Data cleaning, data analysis and paper itself was conducting using R Markdown in R Studio. Graphs were generated using ggplot2 package. Panel regressions were performed using the plm package. Tables and graphs were generated using the stargazer package. Data Manipulation was done using dplyr.
+
+## Data Analysis and Presentation Packages
+
+\noindent [1] Achim Zeileis. 2004. "Econometric Computing with HC and HAC Covariance Matrix Estimators." Journal of Statistical Software, 11(10), 1-17. URL http://www.jstatsoft.org/v11/i10/.
+
+\noindent [2] Croissant, Yves, and Giovanni Millo. 2008. "Panel Data Econometrics in R: The plm Package." Journal of Statistical Software, 27(2). URL http://www.jstatsoft.org/v27/i02/.
+
+\noindent [3] Hadley, Wickham, and Romain Francois. 2016. dplyr: A Grammar of Data Manipulation. R package version 5.0. http://CRAN.R-project.org/package=dplyr
+&nbsp;
+
+\noindent [4] Hadley, Wickham, and Winston Chang. 2016. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2009. R package version 5.2. http://CRAN.R-project.org/package=ggplot2
+&nbsp;
+
+\noindent [5] Hlavac, Marek. 2015. stargazer: Well-Formatted Regression and Summary Statistics Tables. R package version 5.2. http://CRAN.R-project.org/package=stargazer
 
 
 
