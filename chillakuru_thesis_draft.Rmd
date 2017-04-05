@@ -137,7 +137,7 @@ From the survey data, the impact of PGMSY on rural India can be seen. In 2005, `
 A plausible explanation for this may be improved diagnosis from medical campaigns. A simple analysis examining “Percentage of Village with Any Disease vs Distance to Road” reveals a negative relationship between distanceToPavedRoad and mbAnyDisease in 2005 but a positive relationship in 2012. The 2005 correlation opposes the prevailing notion that roads access would reduce disease incidence, but may be attributed to increased diagnosis.
 
 
-```{r plot, echo=FALSE, results='asis'}
+```{r plot, echo=FALSE, results='asis', fig.height=3}
 ggplot(data=dfNoRoad, aes(x=distanceToPavedRoad, y=mbAnyDisease, color=year)) + geom_point(alpha=0.3, na.rm = TRUE) + labs(title = 'Disease Incidence vs Distance to Paved Road for Village', y='Percent of Villagers with Any Disease', x='Distance To Paved Road (km)') + geom_smooth(method=lm, se=FALSE, na.rm = TRUE)
 ```
 
@@ -399,6 +399,8 @@ stargazer(plm.daysInc.1, plm.daysInc.2, plm.daysInc.3, plm.daysInc.4, plm.daysIn
 ```
 \newpage
 # Appendix
+
+## Code on Github
 
 \qquad All prelimary data cleaning code and exploratory data analysis can be viewed at https://github.com/yesh747/RuralRoadsIndia. Instruction on navigating these files on be found directly on the github.
 
