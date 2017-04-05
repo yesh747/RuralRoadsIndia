@@ -87,6 +87,8 @@ Djemai found that both effects independently occur and are significant, but the 
  
 This paper uses panel data from the India Human Development Survey (IHDS) to demonstrate the relationship between road expansion and health outcomes, as defined by incidence of a major morbidity (i.e. long-term) disease in the past year, specifically the following 14 diseases: cataracts, tuberculosis, high blood pressure, heart disease, diabetes, leprosy, cancer, asthma, polio, paralysis, epilepsy, mental illness, STD/AIDS, and an other long-term disease. Using a linear regression model revealed that road expansion, whether by decreasing distance to nearest paved road or building a paved road in the village, significant had no impact on the incidence of any disease in rural India.
 
+This paper is structured as follows. The next section, Data, will examine IHDS data, discussing it's strengths and weakness. The Model section will introduce the two main equations that form the basis for the analysis. The Results section discuses the main findings when applying the models two the IHDS data. The Robustness Checks section attempts to identify and resolve any pitfalls in analysis.
+
 # Data
 
 \qquad IHDS is a nationally representative survey of 41,554 households in 1,503 villages and 971 urban neighborhoods in India. IHDS-I was conducted from 2004-2005, and IHDS-II was conducted from 2011-2012. The data of interest for this study was divided into several levels. Health outcomes, such as incidence of diabetes or polio, and individual-level controls, such as education and alcohol consumption, were stored in the individual-level dataset. Household-level controls, such as income and access to electricity, were stored household-level dataset. Road data, such as distance to road, and village-level controls were stored in the village-level dataset. The datasets were all encoded to be mapped together. Each village had an I.D. number. Each household had an I.D. number that was mapped to the village I.D. number. Each individual had an I.D. number that was then mapped to the household and village I.D. numbers. Therefore, data was aggregated to the village level, which had the road data, and as a result, an individual village is the unit of observation. When aggregating data from the specific to the broad (i.e. individual/household to village), the mean was used if data was an interval or ratio variable. If the data was a categorical variable, dummy variables were created for each category and the means of the dummy variables were aggregated to the village level. After data cleaning, the 2005 data (IHDS-I) contained `r dim(df2005)[1]` observations (i.e. unique villages), and the 2012 dataset (IHDS-II) contained `r dim(df2012)[1]` observations. `r dim(dfMerge)[1]` villages were the same in both 2005 and 2012.
@@ -395,6 +397,13 @@ stargazer(plm.mb[diseases[10:14]], se=plm.mb.hc1[diseases[10:14]]["Std. Error"],
 ```{r robust_daysIncOut, fig.width=3, echo=FALSE, results='asis', fontsize='6pt'}
 stargazer(plm.daysInc.1, plm.daysInc.2, plm.daysInc.3, plm.daysInc.4, plm.daysInc.5, plm.daysInc.6, se=list(r.se.daysInc.1, r.se.daysInc.2, r.se.daysInc.3, r.se.daysInc.4, r.se.daysInc.5, r.se.daysInc.6), header=FALSE, title="Road and Days Incapacitated Due To Illness: OLS with Village and Time-fixed Effects", omit.stat = c("f"))
 ```
+# Appendix
+
+# TO-DO's
+
+ * Introduction should contain the "ROAD MAP" section
+ * Report descriptive statistics for independent variables
+ * Write abstract
 
 
 
