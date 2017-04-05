@@ -85,7 +85,7 @@ Djemai found that both effects independently occur and are significant, but the 
  2. By accelerating economic development and thus personal hygiene and sanitation, roads will improve overall health outcomes.
  3. By increasing the likelihood of communication from high-risk mobility groups, roads will worsen health outcomes related to communicable disease, but will have no effect for non-communicable disease.
  
-This paper uses panel data from the India Human Development Survey (IHDS) to demonstrate the relationship between road expansion and health outcomes, as defined by incidence of a disease in the past 60 days, specifically the following 13 diseases: cataracts, tuberculosis, high blood pressure, heart disease, diabetes, leprosy, cancer, asthma, polio, paralysis, epilepsy, mental illness, STD/AIDS, and other major morbidity diseases. Using a linear regression model revealed that road expansion, whether by decreasing distance to nearest paved road or building a paved road in the village, significant had no impact on the incidence of any disease in rural India.
+This paper uses panel data from the India Human Development Survey (IHDS) to demonstrate the relationship between road expansion and health outcomes, as defined by incidence of a major morbidity (i.e. long-term) disease in the past year, specifically the following 14 diseases: cataracts, tuberculosis, high blood pressure, heart disease, diabetes, leprosy, cancer, asthma, polio, paralysis, epilepsy, mental illness, STD/AIDS, and an other long-term disease. Using a linear regression model revealed that road expansion, whether by decreasing distance to nearest paved road or building a paved road in the village, significant had no impact on the incidence of any disease in rural India.
 
 # Data
 
@@ -146,7 +146,7 @@ ggplot(data=dfNoRoad, aes(x=distanceToPavedRoad, y=mbAnyDisease, color=year)) + 
 $$diseaseIncidence_{it} = \beta RoadPaved_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it} \tag{1}$$
 $$diseaseIncidence_{it} = \beta ln(DistToPavedRoad)_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it} \tag{2}$$
  
- $diseaseIncidence$ is the percent of villagers in village $i$ during year $t$ ($t$ is 2005 or 2012) that fall into one of three disease categories:
+$diseaseIncidence$ is the percent of villagers in village $i$ during year $t$ ($t$ is 2005 or 2012) that fall into one of three disease categories:
  
 * Sick with at least one of the 14 disease categories collected in the IHDS ($diseaseIncidence = mbAnyDisease$)
 * Sick with at least one of three communicable diseases, STD/AIDS, Polio, or Tuberculosis ($diseaseIncidence = mbComDisease$)
@@ -250,39 +250,104 @@ stargazer(plm.22, plm.23, plm.24, se=list(r.se.22, r.se.23, r.se.24),title="Road
 
 ## General Disease Incidence and Roads
 
-\qquad Table 3 presents the results for Equation (1) for percentage of villagers with at least one of the 14 major morbidity diseases ($diseaseIncidence_{it} = mbAnyDisease_{it}$). A positive correlation initially exists at the 10% significance level (Table 3: Regression 2) between having a paved road and when controlling for $Household_{it}$ variables (income: average income of village, illiterate: percentage of villagers that can read or write, smokeTobacco: percentage of villagers that smoke, electricity: percentage of villagers with electricity, ownToilet: percentage of villagers own a toilet, seenDoctor: percentage of villagers who have seen a doctor in the past 5 years for a non-major morbidity disease). In Table 3: Regression 2, villages with a paved road have a `r round(plm.2$coefficients['roadPaved'],3)` percentage points increase in the percent of their population sick with on the 14 diseases. However, the weak level of significance (10%) and combined results of Table 3: Regression 3 support concluding that introduction of a paved road has no signficant impact on `mbAnyDisease. Table 3: Regression 3 includes $Medical_{it}$ controls where individuals sought treatment when sick with the disease (Treat.SameVil: percentage of villagers that sought treatment in the same village, Treat.OthrVil: percentage of villagers that sought treatment in a different village, Treat.OthrTwn: percentage of villagers that sought treatment in a larger town, Treat.DstrctTwn: percentage of villagers that sought treatment in the large district town). When controlling for treatment location, the effect of having a paved road in the village and all $Household_{it}$ and $Village_{it}$ controls become insignificant.
+\qquad Table 3: Regressions 1, 2, 3 present the results for Equation (1) for percentage of villagers with at least one of the 14 major morbidity diseases ($diseaseIncidence_{it} = mbAnyDisease_{it}$). A positive correlation initially exists at the 10% significance level (Table 3: Regression 2) between having a paved road and when controlling for $Household_{it}$ variables (income: average income of village, illiterate: percentage of villagers that can read or write, smokeTobacco: percentage of villagers that smoke, electricity: percentage of villagers with electricity, ownToilet: percentage of villagers own a toilet, seenDoctor: percentage of villagers who have seen a doctor in the past 5 years for a non-major morbidity disease). In Table 3: Regression 2, villages with a paved road have a `r round(plm.2$coefficients['roadPaved'],3)` percentage points increase in the percent of their population sick with on the 14 diseases. However, the weak level of significance (10%) and combined results of Table 3: Regression 3 support concluding that introduction of a paved road has no signficant impact on `mbAnyDisease. Table 3: Regression 3 includes $Medical_{it}$ controls where individuals sought treatment when sick with the disease (Treat.SameVil: percentage of villagers that sought treatment in the same village, Treat.OthrVil: percentage of villagers that sought treatment in a different village, Treat.OthrTwn: percentage of villagers that sought treatment in a larger town, Treat.DstrctTwn: percentage of villagers that sought treatment in the large district town). When controlling for treatment location, the effect of having a paved road in the village and all $Household_{it}$ and $Village_{it}$ controls become insignificant.
 
-Table 4 presents data for Equation (2) for incidence of any disease ($diseaseIncidence_{it} = mbAnyDisease_{it}$). For villages without a paved road, increasing distance to the paved road has significant relationship with disease incidence, regardless of controls. Even among our controls, the only ones significant were the location where individuals sought out treatment. These non-significant finds are suprising, but important nonetheless because the fly in contridiction to the results of Djemai (2011) and the claims of Ministry of Rural Development in India. Analysis on disease categories and individual diseases will help develop a more comprehensive understanding the interactions between disease incidence and road expansion.
+Table 3: Regressions 4, 5, 6 presents data for Equation (2) for incidence of any disease ($diseaseIncidence_{it} = mbAnyDisease_{it}$). For villages without a paved road, increasing distance to the paved road has significant relationship with disease incidence, regardless of controls. Even among our controls, the only ones significant were the location where individuals sought out treatment. These non-significant finds are suprising, but important nonetheless because the fly in contridiction to the results of Djemai (2011) and the claims of Ministry of Rural Development in India. Analysis on disease categories and individual diseases will help develop a more comprehensive understanding the interactions between disease incidence and road expansion.
 
 ## Communicable Disease Incidence and Roads
 
-\qquad Communicable and non-communicable disease act through different channels, and Djemai (2011) and Tatem et al. (2006) have shown that roads and transportation infrastructure expansion strongly contribute to the spread of communicable disease. Table 5 and Table 6 detail the analysis of Equations (1) and (2), respectively, on incidence of communicable diseases ($diseaseIncidence_{it} = mbComDisease_{it}$), which are defined here as STD/AIDS, polio, or tuberculosis. Opposite to expectations, roads in both Equations (1) and (2) have no net impact on communicable disease.However, the some treatment location variables were found to be significant in Table 5: Regression 3, just as occurred when $diseaseIncidence_{it} = mbAnyDisease_{it}$. 
+\qquad Communicable and non-communicable disease act through different channels, and Djemai (2011) and Tatem et al. (2006) have shown that roads and transportation infrastructure expansion strongly contribute to the spread of communicable disease. Table 4 details the analysis of Equations (1) and (2), on incidence of communicable diseases ($diseaseIncidence_{it} = mbComDisease_{it}$), which are defined here as STD/AIDS, polio, or tuberculosis. Opposite to expectations, roads in both Equations (1) and (2) have no net impact on communicable disease.However, the some treatment location variables were found to be significant in Table 4: Regression 6, just as occurred when $diseaseIncidence_{it} = mbAnyDisease_{it}$. 
 
 ## Non-Communicable Disease Incidence and Roads
-Tables 7 and 8 present results from analysis of Equations (1) and (2), respectively, on incidence of non-communicable diseases ($diseaseIncidence_{it} = mbNonComDisease_{it}$). Similar to previous results thus far, road expansion appears to have no significant effect on incidence of non-communicable disease, while again the only significant controls are where individuals sought treatment (Treat.OthrTwn and Treat.DstrctTwn).
+
+Table 5 presents results from analysis of Equations (1) and (2), on incidence of non-communicable diseases ($diseaseIncidence_{it} = mbNonComDisease_{it}$). Similar to previous results thus far, road expansion appears to have no significant effect on incidence of non-communicable disease, while again the only significant controls are where individuals sought treatment (Treat.OthrTwn and Treat.DstrctTwn).
 
 ## STD/AIDS Incidence and Roads
 
-In order to make a direct comparison to Djemai's results on the positive correlation between distance to paved road and HIV Incidence, I applied Equations (1) and (2) to STD/AIDS incidence. Tables 9 and 10, respectively detail these results. Similar to Djemai, we control for education (literacy rate) and income, while also controlling for treatment location, immunization campaigns, and sanitary conditions (owning a toilet in home). The models in this paper lack controls for marriage, gender, HIV/knowledge, and age, primarily because our unit of observation is at the village level, while Djemai's is at the individual level. Due to lack fof GPS coordinate, I am unable to replicate Djemai's istrumental variables methods using terrain ruggedness and gradient, but our analysis uses time-fixed and village-fixed effects, whereas Djemai could only use regional-fixed effects. Both analysis have the drawbacks and strengths, but the results in Tables 9 and 10 show that raods have no effect on STD/HIV incidence, in disagreement with Djemai's results.
+\qquad In order to make a direct comparison to Djemai's results on the positive correlation between distance to paved road and HIV Incidence, I applied Equations (1) and (2) to STD/AIDS incidence. Table 6 details these results. Similar to Djemai, we control for education (literacy rate) and income, while also controlling for treatment location, immunization campaigns, and sanitary conditions (owning a toilet in home). The models in this paper lack controls for marriage, gender, HIV/knowledge, and age, primarily because our unit of observation is at the village level, while Djemai's is at the individual level. Due to lack fof GPS coordinate, I am unable to replicate Djemai's istrumental variables methods using terrain ruggedness and gradient, but our analysis uses time-fixed and village-fixed effects, whereas Djemai could only use regional-fixed effects. Both analysis have the drawbacks and strengths, but the results in Tables 9 and 10 show that raods have no effect on STD/HIV incidence, in disagreement with Djemai's results.
 
 # Robustness Checks
 
-\qquad The 
 
-TODO:
+```{r robust_allDisease, include=FALSE, results='asis', size = 'tiny'}
+mbStart <- which(colnames(df) == "mbCataract")
+mbEnd <- which(colnames(df) == "mbSTDorAIDS")
 
- * Subset data for migration of individuals.
- * Regression for each individual disease
- * Look at Literature for treatment location
- * Look at roads impact on days incapacitated
- * Control for other things
+diseases <- colnames(df[,mbStart:mbEnd])
+diseases <- append(diseases, c('mbOtherLongTerm'))
+
+plm.mb <- list()
+plm.mb.hc1 <- list()
+for (disease in diseases) {
+  plm.mb[disease] <- list(plm(df[,disease] ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, data=df, index = c("id", "year"), model = "within"))
+  
+  # generate robust standard errors
+  plm.mb.hc1[disease] <- list(coeftest(plm.mb[[disease]], function(x) vcovHC(x, type="HC1")))
+}
+
+stargazer(plm.mb[diseases], se=plm.mb.hc1[diseases]["Std. Error"], type = "text", column.labels=diseases, title="Road Paved and Incidence of All Diseases: OLS with Village and Time-Fixed Effects", header=FALSE)
+```
+
+```{r robust_daysInc, fig.width=3, include=FALSE, results='asis'}
+plm.daysInc.1 <- plm(data=df, mbDaysIncapacitated ~ roadPaved, index = c("id", "year"), model="within")
+plm.daysInc.2 <- plm(data=df, mbDaysIncapacitated ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.daysInc.3 <- plm(data=df, mbDaysIncapacitated ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
+r.se.daysInc.1 <- sqrt(diag(vcovHC(plm.daysInc.1, type = "HC1")))
+r.se.daysInc.2 <- sqrt(diag(vcovHC(plm.daysInc.2, type = "HC1")))
+r.se.daysInc.3 <- sqrt(diag(vcovHC(plm.daysInc.3, type = "HC1")))
+
+
+plm.daysInc.4 <- plm(data=df, mbDaysIncapacitated ~ roadPaved, index = c("id", "year"), model="within")
+plm.daysInc.5 <- plm(data=df, mbDaysIncapacitated ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.daysInc.6 <- plm(data=df, mbDaysIncapacitated ~ roadPaved + income + illiterate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + primaryHealthCntr + Treat.SameVil + Treat.OthrVil + Treat.OthrTwn + Treat.DstrctTwn, index = c("id", "year"), model="within")
+r.se.daysInc.4 <- sqrt(diag(vcovHC(plm.daysInc.4, type = "HC1")))
+r.se.daysInc.5 <- sqrt(diag(vcovHC(plm.daysInc.5, type = "HC1")))
+r.se.daysInc.6 <- sqrt(diag(vcovHC(plm.daysInc.6, type = "HC1")))
+
+stargazer(plm.daysInc.1, plm.daysInc.2, plm.daysInc.3, plm.daysInc.4, plm.daysInc.5, plm.daysInc.6, se=list(r.se.daysInc.1, r.se.daysInc.2, r.se.daysInc.3, r.se.daysInc.4, r.se.daysInc.5, r.se.daysInc.6), type="text", header=FALSE, title="Road and Days Incapacitated Due To Illness: OLS with Village and Time-fixed Effects", omit = c("f"))
+
+```
+
+
+\qquad This analysis examined major groups of the diseases collected by the IHDS. However, when applying Equation (1) to each of the 14 individual disease, the analysis confirmed the relationship that roads have no significant impact on any of the individual health outcomes (Tables 7, 8, and 9), except for cancer, which was significant at the 5% level (Table 8: Regression 3). A positive relationship between presence of a paved road and incidence of cancer exists, where a paved roads is correlated to a `r plm.mb[['mbCancer']]$coefficients['roadPaved']` percentage point increase in the percentof villagers with cancer.
+
+A strange facet of the analysis is the significance of the treatment location, specifically whether an individual recieved treatment in the same village or elsewhere. Initially, this may be interpreted as individuals who are treated, whether in the same village or elsewhere, will have better health outcomes, compared to not being treated at all. To, the seenDoctor variable captures the percent of villagers who have been to a doctor in the past 5 years for a non-major morbidity disease. This variable would otherwise capture variations in seeing the doctor in villages across years, a potential effect of improved education and health awareness campaigns in rural India. Yet, the seenDoctor variable was not significant in nearly an regression result. Another pausible explanation for the significance of treatment location is that other villages may have better or more health facilities. However, a control variable for the number of Primary Health Centers (primaryHealthCntr) in each village in both 2005 and 2012. The Ministry of Health and Family Welfare of the Government of India (2016) launched the Natural Rural Health Mission in 2005 to improve healthcare in rural India, which included expanding the number of Primary Health Centers, state owned health clinics. The significance of treatment location may be a statistically anomoly or the result of a psychological force where individuals who seek treatment more often are in general healthier because they are more conscious of their health. Little exists on the impact of road infrastructure on health outcomes in rural India, and even less exists on treatment location.
+
+While road expansion has no effect on any type of disease incidence according to our analysis, it may impact the number of days incapacitated due to one or more of the 14 diseases. Equation (1) is expanded to examine average number of days villagers are incapacitated due to one or more of the disease (mbDaysIncapacitated), the following model:
+$$mbDaysIncapacitated_{it} = \beta RoadPaved_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \delta_{3} Medical_{it} + \gamma_{it} + \varepsilon_{it} \tag{3}$$
+Table 10 details the result of this analysis and supports the theory that roads have no net impact on any of the 14 major morbidity diseases collected by IHDS
+
+One potential caveat in this analysis was the granularity of the unit of observation, the village. Road data was collected at the village level, so individual health data was aggregated using the mean to this level, which results in a loss of resolution in the data of individual variations. This means our model is unable to account for individual changes in behavior that may result in different health outcomes. This is an important drawback of the analysis because the mechanisms through which road expansion could alter health outcomes is through individuals. Individuals, not villages, make the decision to see physicians and travel to hospitals. Djemai (2011) was fortunate to have conducted his analysis at the individual level, and this difference in data resolution may account for the non-significant findings. However, my analysis did show significance in the univariate regressions between having a paved road and disease incidence.
 
 
 # Conclusion
 
+\qquad Using data on individuals, households, and villages from the Indian Human Development Survey (IHDS), this paper analyzes the effect of road expansion on disease incidence in villages in rural India. This analysis examines how disease incidence both whether a village has a paved road or not and, if it has no paved road, whether the distance to paved road. Disease incidence is categorized by the percent of villagers in each village that have at least one of the 14 major morbitity (i.e. long-term) diseases collected by IHDS: cataracts, tuberculosis, high blood pressure, heart disease, diabetes, leprosy, cancer, asthma, polio, paralysis, epilepsy, mental illness, STD/AIDS, and an other long-term disease. Using a OLS Regression Model with village and time-fixed effects and with villages as the unit of observation, the results suggest that road expension has no significant impact on major morbitity incidence in villages in rural India.
 
+These results contribute to the limited, but growing literature on rural infrastructure and health outcomes. Bell and van Dillen (2014) found no effect of paved roads on health outcomes in upland Orissa, India. While their paper limited to cross-sectional data from a relatively small sample of 1,292 villagers in 30 villages in a specific region of the country, this paper examined `r dim(dfMerge)[1]` villages from throughout India in both 2005 and 2012 with village-level fixed effects. The null findings in this paper, however, support Bell and van Dillens claims using a more robust dataset and model. Djemai (2011) demonstrated a robust, positive relationship between HIV incidence and distance to paved roads in six African countries and attributed this effect to the increased movement of mobility groups with high HIV-risk overpowering the benefits of increased medical access and knowledge associated with road expansion. This analysis contradicted Djemai's findings as raods had no impact on STD/AIDS incidence or communicable diseases in general (IHDS combined STDs and AIDS into one survey question). This difference may be attributable to a difference in cultures (high-risk mobility groups may not have as large a presence in rural India) or differences in disease environments (HIV is not as prevalent in India).
+
+These findings have important implications for Indian domestic rural policy and validity of internal reviews. The Ministry of Rural Development (2004) claimed an overwhelmingly positive impact of road expansion on rural health outcomes when conducting an assessment of PMGSY, the nation's rural road expansion program begun in 2004 and continuing to this day. The Ministry referenced survey data itself collected that showed improved travel times to health centers, higher levels of patients satisfaction, and increased hospital visits in several districts. The assessment was several limited by a small sample size, no control groups or variables, and any measure of tangible improvements in the direct health of individuals. This analysis shows that simply building infrastructure improving access is not enough to improve policy alone and internal reviews for assessing impact must be held to a higher standard of rigor. Additionally, these findings shed light on a more general topic of rural road infrastructure in developing countries and health outcomes. While road expansion is vital and important to the long-term economic and social development, it alone cannot induce improvements in population health. Road infrastructure is one component of an integrated plan, which includes health facility quality, physician access, mental health security, etc., to improving health outcomes.
+
+
+\newpage
+# References
+
+\noindent [1] Bell, Clive and Susanne van Dillen. 2014. “How Does India’s Rural Road Program Affect the Grassroots? Findings from a Survey in Upland Orissa.” *Land Economics*, 90(2): 372-394. https://www.researchgate.net/publication/254456306_How_Does_India's_Rural_Roads_Program_Affect_the_Grassroots_Findings_from_a_Survey_in_Upland_Orissa.
+&nbsp;
+
+\noindent [2] Djemai, Elodie. 2011. “HIV and Access to Road.” University of Michigan Working Paper. http://www.ipc.umich.edu/pdf/Djema-HIV-Access-to-Road.pdf.
+&nbsp;
+
+\noindent [3] Ministry of Health and Family Welfare, Government of India. 2016. Indian Public Health Standards. http://nrhm.gov.in/nhm/nrhm/guidelines/indian-public-health-standards.html.
+&nbsp;
+
+\noindent [4] Ministry of Rural Development, Government of India. 2004. Impact Assessment of Pradhan Mantri Gram Sadak Yojana. http://pmgsy.nic.in/pmg122.asp.
+&nbsp;
+
+\noindent [5] World Bank. 2010. Project Appraisal Document. Report No. 570810-IN. http://documents.worldbank.org/curated/en/879581468041646928/pdf/570810PAD0P1241e0only1910BOX353794B.pdf.
+
+\newpage
 # Tables
-
 ```{r dataTables, echo=FALSE, results='asis', size = 'tiny'}
 
 diseaseNames <- append(diseaseNames, c('mbAnyDisease', 'mbComDisease', 'mbNonComDisease'))
@@ -292,47 +357,44 @@ df_disease2012 <- df2012[, diseaseNames]
 
 stargazer(df_disease2005, title="2005 Summary Statistics: Disease Incidence (Pct of village) 2005", header = FALSE)
 
-stargazer(df_disease2012, title="2012 Summary Statistics: Disease Incidence (Pct of village)", header = FALSE)
+stargazer(df_disease2012, title="2012 Summary Statistics: Disease Incidence (Pct of village) 2012", header = FALSE)
 
 # kable(diseaseMeansDF[,1:7], caption="Average Percent of Villagers in each Village with Disease:")
 # 
 # kable(diseaseMeansDF[,c(1,8:14)], caption="Average Percent of Villagers in each Village with Disease:")
 ```
 
-```{r anyDiseaseOut, fig.width=3, echo=FALSE, results='asis'}
-stargazer(plm.1, plm.2, plm.3, se=list(r.se.1, r.se.2, r.se.3), title="Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
+```{r anyDiseaseOut, fig.width=3, echo=FALSE, results='asis', fontsize='6pt'}
+stargazer(plm.1, plm.2, plm.3, plm.4, plm.5, plm.6, se=list(r.se.1, r.se.2, r.se.3, r.se.4, r.se.5, r.se.6), title="Road Expansion and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", header=FALSE, omit.stat = c("f"))
 
-stargazer(plm.4, plm.5, plm.6, se=list(r.se.4, r.se.5, r.se.6),title="Road Distance and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
+# stargazer(plm.4, plm.5, plm.6, se=list(r.se.4, r.se.5, r.se.6),title="Road Distance and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
 ```
 
-```{r comDiseaseOut, fig.width=3, echo=FALSE, results='asis'}
-stargazer(plm.7, plm.8, plm.9, se=list(r.se.7, r.se.8, r.se.9), title="Road Paved and Incidence of Communicable Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
+```{r comDiseaseOut, fig.width=3, echo=FALSE, results='asis', fontsize='6pt'}
+stargazer(plm.7, plm.8, plm.9, plm.10, plm.11, plm.12, se=list(r.se.7, r.se.8, r.se.9, r.se.10, r.se.11, r.se.12), title="Road Expansion and Incidence of Communicable Disease: OLS with Village and Time-Fixed Effects", header=FALSE, omit.stat = c("f"))
 
-stargazer(plm.10, plm.11, plm.12, se=list(r.se.10, r.se.11, r.se.12),title="Road Distance and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
+# stargazer(plm.10, plm.11, plm.12, se=list(r.se.10, r.se.11, r.se.12),title="Road Distance and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
 ```
 
-```{r nonComDiseaseOut, fig.width=3, echo=FALSE, results='asis'}
-stargazer(plm.13, plm.14, plm.15, se=list(r.se.13, r.se.14, r.se.15), title="Road Paved and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
-stargazer(plm.16, plm.17, plm.18, se=list(r.se.16, r.se.17, r.se.18),title="Road Distance and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
+```{r nonComDiseaseOut, fig.width=3, echo=FALSE, results='asis', fontsize='6pt'}
+stargazer(plm.13, plm.14, plm.15, plm.16, plm.17, plm.18, se=list(r.se.13, r.se.14, r.se.15, r.se.16, r.se.17, r.se.18), title="Road Expansion and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", header=FALSE, omit.stat = c("f"))
+# stargazer(plm.16, plm.17, plm.18, se=list(r.se.16, r.se.17, r.se.18),title="Road Distance and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", header=FALSE)
 ```
 
-```{r STDorAIDSOut, fig.width=3, echo=FALSE, results='asis'}
-stargazer(plm.19, plm.20, plm.21, se=list(r.se.19, r.se.20, r.se.21), title="Road Paved and Incidence of STD/AIDS: OLS with Village and Time-Fixed Effects", header=FALSE)
-stargazer(plm.22, plm.23, plm.24, se=list(r.se.22, r.se.23, r.se.24), title="Road Distance and Incidence of STD/AIDS: OLS with Village and Time-Fixed Effects", header=FALSE)
+```{r STDorAIDSOut, fig.width=3, echo=FALSE, results='asis', fontsize='6pt'}
+stargazer(plm.19, plm.20, plm.21, plm.22, plm.23, plm.24, se=list(r.se.19, r.se.20, r.se.21, r.se.22, r.se.23, r.se.24), title="Road Expansion and Incidence of STD/AIDS: OLS with Village and Time-Fixed Effects", header=FALSE, omit.stat = c("f"))
+# stargazer(plm.22, plm.23, plm.24, se=list(r.se.22, r.se.23, r.se.24), title="Road Distance and Incidence of STD/AIDS: OLS with Village and Time-Fixed Effects", header=FALSE)
 ```
 
+```{r AllDiseasesOut, fig.width=3, echo=FALSE, results='asis', fontsize='6pt'}
+stargazer(plm.mb[diseases[1:4]], se=plm.mb.hc1[diseases[1:4]]["Std. Error"], column.labels=diseases[1:4], title="Road Paved and Disease Incidence: OLS with Village and Time-Fixed Effects", header=FALSE, omit.stat = c("f"))
+stargazer(plm.mb[diseases[5:9]], se=plm.mb.hc1[diseases[5:9]]["Std. Error"], column.labels=diseases[5:9], title="Road Paved and Disease Incidence: OLS with Village and Time-Fixed Effects", header=FALSE, omit.stat = c("f"))
+stargazer(plm.mb[diseases[10:14]], se=plm.mb.hc1[diseases[10:14]]["Std. Error"], column.labels=diseases[10:14], title="Road Paved and Disease Incidence: OLS with Village and Time-Fixed Effects", header=FALSE, omit.stat = c("f"))
+```
 
-
-# Appendix
-
-# TO-DO's
-
- * Introduction should contain the "ROAD MAP" section
- 
- * Write abstract
-
- * (maybe do it in the RESULTS section) Additionally, to control for road-induced migration, the data can be subsetted for people who have lived in the current village for over 7 years. This means that they would partake in both the 2005 and 2012 surveys.
-
+```{r robust_daysIncOut, fig.width=3, echo=FALSE, results='asis', fontsize='6pt'}
+stargazer(plm.daysInc.1, plm.daysInc.2, plm.daysInc.3, plm.daysInc.4, plm.daysInc.5, plm.daysInc.6, se=list(r.se.daysInc.1, r.se.daysInc.2, r.se.daysInc.3, r.se.daysInc.4, r.se.daysInc.5, r.se.daysInc.6), header=FALSE, title="Road and Days Incapacitated Due To Illness: OLS with Village and Time-fixed Effects", omit.stat = c("f"))
+```
 
 
 
