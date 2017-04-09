@@ -64,7 +64,7 @@ dfNoRoad$year <- as.factor(dfNoRoad$year)
 
 \newpage
 
-# Introduction
+# I. Introduction
 
 \qquad Improving transportation infrastructure is vital to India’s long-term economic development. Paved roads are needed to facilitate trade between communities and improve access to markets, schools, and health facilities, especially in rural India, where most of the country’s population lives. In 2000, India began the rural road expansion program known as Pradhan Mantri Gram Sadak Yojama (PMGSY), which aims to connect 170,000 villages with paved all-weather roads by 2020. As of 2010, 72,000 habitations have been connected by paved roads (World Bank, 2010). However, few studies have examined the efficacy of road improvement on health outcomes in India, and what literature exists is often plagued by weak methodology. The Ministry of Rural Development in India assessed PMGSY in 2004 and claimed an overwhelmingly positive impact of roads on health outcomes, stating improved travel times, higher levels of patient satisfaction, and increased hospital visits in several districts. However, the assessment was limited by a small sample size, no control groups, and failure to control for confounding variables, such as increased disease communication due to improved travel conditions causing more hospital visits.
 
@@ -83,9 +83,9 @@ Djemai found that both effects independently occur and are significant, but the 
  
 This paper uses panel data from the India Human Development Survey (IHDS) to demonstrate the relationship between road expansion and health outcomes, as defined by incidence of a major morbidity (i.e. long-term) disease in the past year, specifically the following 14 diseases: cataracts, tuberculosis, high blood pressure, heart disease, diabetes, leprosy, cancer, asthma, polio, paralysis, epilepsy, mental illness, STD/AIDS, and an other long-term disease. Using a linear regression model revealed that road expansion, whether by decreasing distance to nearest paved road or building a paved road in the village, had no impact on the incidence of any disease in rural India.
 
-This paper is structured as follows. The next section, Data, will examine IHDS data, discussing its strengths and weaknesses. The Model section will introduce the two main equations that form the basis for the analysis. The Results section discuses the main findings when applying the models two the IHDS data. The Robustness Checks section attempts to identify and resolve any pitfalls in the analysis.
+This paper is structured as follows. The Section II will examine IHDS data, discussing its strengths and weaknesses. The Section III will introduce the two main models that form the basis for the analysis. The Section IV discusses the main results from applying the models to the IHDS data. The Section V examines the robustness of the findings.
 
-# Data
+# II. Data
 
 \qquad IHDS is a nationally representative survey of 41,554 households in 1,503 villages and 971 urban neighborhoods in India. IHDS-I was conducted from 2004-2005, and IHDS-II was conducted from 2011-2012. The data of interest for this study was divided into several levels. Health outcomes, such as incidence of diabetes or polio, and individual-level controls, such as education and alcohol consumption, were stored in the individual-level dataset. Household-level controls, such as income and access to electricity, were stored household-level dataset. Road data, such as distance to nearest paved road, and village-level controls were stored in the village-level dataset. The datasets were all encoded by IHDS to be mapped together. Each village had an I.D. number. Each household had an I.D. number that was mapped to the village I.D. number. Each individual had an I.D. number that was then mapped to the household and village I.D. numbers. Therefore, data was aggregated to the village level, which had the road data, and as a result, each individual village is the unit of observation. When aggregating data from the specific to the broad (i.e. individual/household to village), the mean was used if data was an interval or ratio variable. If the data was a categorical variable, dummy variables were created for each category, and the means of the dummy variables were aggregated to the village level. After data cleaning, the 2005 data (IHDS-I) contained `r dim(df2005)[1]` observations (i.e. unique villages), and the 2012 dataset (IHDS-II) contained `r dim(df2012)[1]` observations. `r dim(dfMerge)[1]` villages were the same in both 2005 and 2012.
 
@@ -136,7 +136,7 @@ ggplot(data=dfNoRoad, aes(x=distanceToPavedRoad, y=mbAnyDisease, color=year)) + 
 ```
 
 
-# Model
+# III. Model
 
 \qquad Two OLS regressions models with time and village-fixed effects will be used to analyze the impact of road expansion on incidence of disease:
 $$diseaseIncidence_{it} = \beta RoadPaved_{it} + \delta_{1} Household_{it} + \delta_{2} Village_{it} + \gamma_{it} + \varepsilon_{it} \tag{1}$$
@@ -157,7 +157,7 @@ As demonstrated by Djemai (2011), the introduction of paved roads may increase d
 
 Additionally, non-random road placement may appear to be a concern. Villages with higher incomes and larger populations could be more likely to receive roads. Similarly, wealthier villages may have better health facilities. Djemai instrumented road distance on terrain ruggedness and slope to account for non-random raod placement. However, PMGSY program is run at the national, and not state or district, level, and is less prone to influence of local village-level politics. Therefore, the assumption of non-random road placement can be made. Nonetheless, these models introduce controls to ensure robustness. Time and village-fixed effects control for several potentials areas of omitted variable bias. Differences between villages in healthcare technology and access and sanitation infrastructure may arise non-randomly as villages near urban areas may benefit from spillover effects and earlier development. However, this is adjusted for by village-fixed effects. Similarly, healthcare technology and sanitation infrastructure may improve from 2005 to 2012 in villages, but, again, these are accounted for in time-fixed effects. Addtionally, Equation (1) can be interpreted as a difference-in-differences design, where the treatment group is the `r round(pctPvdRd12,2)-round(pctPvdRd05,2)`% of villages in our sample that recieve a paved road between 2005 (before treatment) and 2012 (after treatment). Our $Household$, $Village$, and $Medical$ variables control for any village-level changes between 2005 and 2012.
 
-# Results
+# IV. Results
 
 ```{r anyDisease, fig.width=3, include=FALSE, results='asis'}
 
@@ -261,7 +261,7 @@ Table 5 presents results from an analysis of Equations (1) and (2) on incidence 
 
 \qquad In order to make a direct comparison to Djemai's results (the positive correlation between distance to paved road and HIV Incidence), I applied Equations (1) and (2) to STD/AIDS incidence. Table 6 details these results. Similar to Djemai, I controlled for education (literacy rate) and income, while additionally controlling for number of health facilities in the village, immunization campaigns, and sanitary conditions (owning a toilet in the home). The models in this paper lack controls for marriage, gender, HIV/knowledge, and age, primarily because our unit of observation is at the village level, while Djemai's is at the individual level. Due to lack of GPS coordinate, I am unable to replicate Djemai's instrumental variables methods using terrain ruggedness and gradient, but our analysis uses time-fixed and village-fixed effects, whereas Djemai could only use regional-fixed effects. Both analysis have the drawbacks and strengths, but the results in Table 6 are robust in showing that roads have no effect on STD/HIV incidence, in disagreement with Djemai's results.
 
-# Robustness Checks
+# V. Robustness Checks
 
 ```{r robust_allDisease, include=FALSE, results='asis', size = 'tiny'}
 mbStart <- which(colnames(df) == "mbCataract")
@@ -291,9 +291,9 @@ r.se.daysInc.2 <- sqrt(diag(vcovHC(plm.daysInc.2, type = "HC1")))
 r.se.daysInc.3 <- sqrt(diag(vcovHC(plm.daysInc.3, type = "HC1")))
 
 
-plm.daysInc.4 <- plm(data=df, mbDaysIncapacitated ~ roadPaved, index = c("id", "year"), model="within")
-plm.daysInc.5 <- plm(data=df, mbDaysIncapacitated ~ roadPaved + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
-plm.daysInc.6 <- plm(data=df, mbDaysIncapacitated ~ roadPaved + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index = c("id", "year"), model="within")
+plm.daysInc.4 <- plm(data=dfNoRoad, mbDaysIncapacitated ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.daysInc.5 <- plm(data=dfNoRoad, mbDaysIncapacitated ~ lnDistToPvdRd + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.daysInc.6 <- plm(data=dfNoRoad, mbDaysIncapacitated ~ lnDistToPvdRd + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index = c("id", "year"), model="within")
 r.se.daysInc.4 <- sqrt(diag(vcovHC(plm.daysInc.4, type = "HC1")))
 r.se.daysInc.5 <- sqrt(diag(vcovHC(plm.daysInc.5, type = "HC1")))
 r.se.daysInc.6 <- sqrt(diag(vcovHC(plm.daysInc.6, type = "HC1")))
@@ -311,7 +311,7 @@ Table 10 details the result of this analysis and supports the findings that road
 One potential caveat in this analysis was the granularity of the unit of observation: the village. Road data was collected at the village level, so individual health data was aggregated using the mean to the village level, which results in a loss of data resolution for individuals' variations. This means our model is unable to account for individual changes in behavior that may result in different health outcomes. This is an important drawback of the analysis because the mechanisms through which road expansion could alter health outcomes occurs at the individual level. Individuals, not villages, make the decision to see physicians and travel to hospitals. Djemai (2011) was fortunate to have conducted his analysis at the individual level, and this difference in data resolution may account for the non-significant findings.
 
 
-# Conclusion
+# VI. Conclusion
 
 \qquad Using data on individuals, households, and villages from the Indian Human Development Survey (IHDS), this paper analyzes the effect of road expansion on disease incidence in villages in rural India. This analysis examines how disease incidence is affected by whether a village has a paved road or not and, if it has no paved road, the distance to the paved road. Disease incidence is categorized by the percent of villagers in each village that have at least one of the 14 major morbidity (i.e. long-term) diseases collected by IHDS: cataracts, tuberculosis, high blood pressure, heart disease, diabetes, leprosy, cancer, asthma, polio, paralysis, epilepsy, mental illness, STD/AIDS, and an other long-term disease. Using a OLS regression model with time and village-fixed effects and with villages as the unit of observation, the results suggest that road expansion has no significant impact on major morbidity incidence in villages in rural India.
 
@@ -326,7 +326,7 @@ Nonetheless, these findings have important implications for Indian domestic rura
 
 
 
-# References
+# VII. References
 
 \noindent [1] Bell, Clive and Susanne van Dillen. 2014. “How Does India’s Rural Road Program Affect the Grassroots? Findings from a Survey in Upland Orissa.” *Land Economics*, 90(2): 372-394. <https://www.researchgate.net/publication/254456306_How_Does_India's_Rural_Roads_Program_Affect_the_Grassroots_Findings_from_a_Survey_in_Upland_Orissa>.
 &nbsp;
@@ -351,7 +351,7 @@ Nonetheless, these findings have important implications for Indian domestic rura
 
 
 \newpage
-# Tables
+# VIII. Tables
 ```{r dataTables, echo=FALSE, results='asis', size = 'tiny'}
 
 diseaseNames <- append(diseaseNames, c('mbAnyDisease', 'mbComDisease', 'mbNonComDisease'))
@@ -400,13 +400,13 @@ stargazer(plm.mb[diseases[10:14]], se=plm.mb.hc1[diseases[10:14]]["Std. Error"],
 stargazer(plm.daysInc.1, plm.daysInc.2, plm.daysInc.3, plm.daysInc.4, plm.daysInc.5, plm.daysInc.6, se=list(r.se.daysInc.1, r.se.daysInc.2, r.se.daysInc.3, r.se.daysInc.4, r.se.daysInc.5, r.se.daysInc.6), header=FALSE, title="Road and Days Incapacitated Due To Illness: OLS with Village and Time-fixed Effects", omit.stat = c("f"))
 ```
 \newpage
-# Appendix
+# IX. Appendix
 
 ## R Code on Github
 
-\qquad All prelimary data cleaning code and exploratory data analysis can be viewed at <https://github.com/yesh747/RuralRoadsIndia>. Instruction on navigating these files on be found directly on the github.
+\qquad All prelimary data cleaning code and exploratory data analysis can be viewed at <https://github.com/yesh747/RuralRoadsIndia>. Instructions on navigating these files on be found directly on the github.
 
-Data cleaning, data analysis and paper itself was conducting using R Markdown in R Studio. Graphs were generated using ggplot2 package (Hadley and Chang, 2016). Panel regressions were performed using the plm package (Croissant and Millo, 2008). Tables and graphs were generated using the stargazer package (Hlavac, 2015). Data Manipulation was done using dplyr (Hadley and Francois, 2016). Robust, heteroskedastic consistent standard errors were calculated using the sandwich package (Zeileis, 2004).
+Data cleaning, data analysis and creating the paper itself was done using R Markdown in R Studio. Graphs were generated using ggplot2 package (Hadley and Chang, 2016). Panel regressions were performed using the plm package (Croissant and Millo, 2008). Tables and graphs were generated using the stargazer package (Hlavac, 2015). Data Manipulation was done using dplyr (Hadley and Francois, 2016). Robust, heteroskedastic consistent standard errors were calculated using the sandwich package (Zeileis, 2004).
 
 ## R Package References
 
