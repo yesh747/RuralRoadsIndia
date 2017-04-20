@@ -1,0 +1,68 @@
+---
+title: |
+  | Referee Response: 
+  | The Effect of Road Access on Disease Incidence in Rural India
+author: | 
+  | Yeshwant Chillakuru
+  | Department of Economics, The George Washington University
+  | 2115 G St. NW Suite 340, Washington, DC 20052
+date: "5 April 2017"
+output:
+  pdf_document: default
+header-includes:
+  - \usepackage{setspace}\doublespacing
+  - \setlength{\parindent}{2em}
+---
+
+# Requests from Professor Sinclair
+  
+  * Professor requested to use the smallest sample for all analysis as certain controls lowered the sample size during regression analysis. This was addressed by dropping all observations with missing values for all regressor terms. This dropped the sample size from 2800 observations to 2585 obersvations (`r round(100*(2800-2585)/2800,2)`% drop in sample size).
+  * Professor commented why so many obersvations were missing for Equations (2) regressions (599 observations used in Equation (1) regressions compared to 2585 used in Equation (2) regressions). This is because Equation (2) only examines how change in distance to paved affects health outcomes, and so the analysis includes only villages with a paved road (599 villages). This is stated Section III (Model) of the paper, and this approach for analysis was agreed upon with the Professor for ease of interpreability and for isolating the two effects (distance to road and if a road is present or not).
+  * Professor commented to examine the R^2^ values between the two models to see which would be a better model. An analysis of Adjusted R^2^ was included in the Robustness Checks section of the paper. Adjusted R^2^ is more appropriate for analysis because it penalizes additional of more variables into the regression, thus is a more rigorous measure of fit. Analysis of it was included in the Robustness Checks section because I discuss the extremely weak Adjusted R^2^'s as a weakness in the model.
+
+
+  * TODO:
+    * Professor suggested that the stastistical non-significant findings of the impact of paved roads and distance to paved road on health outcomes could be due to countervailing forces.
+    * Examine which control causes the large drop in roadPaved and lnDistToPvdRd coefficients
+      * Drop was seen in mbAnyDisease and mbNonCommDisease (but not in mbCommDisease)
+        * appears to be smokeTobacco causes the big drop and then followed by income, according toa forward stepwise analysis, using one step (smokeTobacco drops coef from 1.6 to 0.5). Backward stepwise, using one step, is inconclusive.
+    * Present base model (w/o panel effects) regressions as well (connect them to the graph with regression lines)
+    * scale income to thousands or hundreds of thousands of dollars
+
+# Requests from Jessica Goldenring (referee)
+
+  * Minor grammatical, spelling and format changes were made.
+
+  * TODO: Intro
+    * Change graph to solid and dotted line
+    * Add Coefficients to graph
+    * Define "rural" and why these villages were chosen
+    * Clarify usage of "robust" when describing the data
+    * Clarify what "Orissa" is and whether it is a rural village
+    * Define communicable and non-communicable disease
+    * Connect second to last paragraph better withthe abstract
+  
+  * TODO: Data
+    * Discuss why not all observations of villagers were used
+    * Clarify the equals sign of diseaseIncidence=mbComDisease
+    * Explain the log transformation of distance to paved road
+    * Move "Additionally" paragraph on (page 6) to Robustness
+    * Give more descriptive statistics about control variables
+    
+  * TODO: Results
+    * Add more interprettions of Adjusted R^2 and Std. Error
+    * Comment about percentage point increase vs point increase in percent
+    * Put the STD/AIDs in the intro section
+    
+  * TODO: Robustness
+    * Talk about internal validity and external validity
+    * Write more about omitted variable bias?
+    
+  * TODO: Conclusion
+    * Second paragraph about null findings should be moved to robustness
+    
+  * TODO: Examine the actual paper comments
+    
+    
+    
+    
