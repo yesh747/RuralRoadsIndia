@@ -1,0 +1,337 @@
+---
+title: "Data_Analysi"
+author: "Yeshwant Chillakuru"
+date: "4/20/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# plotting
+library(ggplot2)
+
+# regressions: robust and panel
+library(plm)
+# library(foreign)
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+# data manipulation
+library(dplyr)
+library(tidyr)
+
+# other
+library(pander)
+library(knitr)
+```
+
+
+# Load Data
+
+```{r loadData, echo=FALSE, include=FALSE}
+df <- read.csv("ruralHealthAndRoadsOfIndianVillages.csv", header = TRUE, row.names = 1)
+df2005 <- read.csv("ruralHealthAndRoadsOfIndianVillages2005.csv", header = TRUE, row.names = 1)
+df2012 <- read.csv("ruralHealthAndRoadsOfIndianVillages2012.csv", header = TRUE, row.names = 1)
+
+df <- rename(df, lnDistToPvdRd=lnDistanceToPavedRoad, ImmuniCamps=ImmunizationCampaignsNumber, PctPipedWater = drinkingWaterSource.Piped, Treat.SameVil = mbTreatmentWhere1.SameVillage, Treat.OthrVil=mbTreatmentWhere1.AnotherVillage, Treat.OthrTwn=mbTreatmentWhere1.OtherTown, Treat.DstrctTwn=mbTreatmentWhere1.DistrictTown, primaryHealthCntr=primaryHealthCenter, literate=illiterate, healthSubCntr=healthSubCenter, commHealthCntr=communityHealthCenter, govtMaternityCntr=govtMaternityCenter, pvtClinic=pvtClinicTrainedDoc, distHealthSubCntr=distHealthSubCenter, distCommHealthCntr=distCommunityHealthCenter, distGovtMaternityCntr=distGovtMaternityCenter, distDstrctHosp=distDistrictHospital, distPrmry=distPrimaryHealthCenter, distPvtClinic=distPvtClinicTrainedDoc)
+
+indepVars <- c("roadPaved", "income", "literate", "smokeTobacco", "ownToilet", "electricity", "seenDoctor", "ImmuniCamps", "PctPipedWater", "healthSubCntr", "primaryHealthCntr", "commHealthCntr", "pvtClinic", "pvtHospital", "lnDistToPvdRd")
+
+df <- df[complete.cases(df[,indepVars]),]
+
+dfNoRoad <- df[(df$roadPaved==0),]
+dfNoRoad2005 <- df2005[(df2005$roadPaved==0), ]
+dfNoRoad2012 <- df2012[(df2012$roadPaved==0), ]
+
+dfNoRoad[, c('roadPaved', 'yearsWithPavedRoad')] <- NULL
+dfNoRoad2005[, c('roadPaved', 'yearsWithPavedRoad')] <- NULL
+dfNoRoad2012[, c('roadPaved', 'yearsWithPavedRoad')] <- NULL
+
+dfNoRoad <- dfNoRoad[complete.cases(dfNoRoad[, c('id','year')]),]
+dfNoRoad2005 <- dfNoRoad2005[complete.cases(dfNoRoad2005[, c('id','year')]),]
+dfNoRoad2012 <- dfNoRoad2012[complete.cases(dfNoRoad2012[, c('id','year')]),]
+
+dfMerge <- merge(df2005, df2012, by="id")
+
+df$year <- as.factor(df$year)
+dfNoRoad$year <- as.factor(dfNoRoad$year)
+```
+
+
+# Descriptive
+
+```{r dataRoad, include=FALSE, message='hide'}
+
+pctPvdRd05 <- mean(df2005$roadPaved, na.rm = TRUE)*100
+pctPvdRd12 <- mean(df2012$roadPaved, na.rm = TRUE)*100
+
+avgDistRd2005 <- mean(dfNoRoad2005$distanceToPavedRoad, na.rm = TRUE)
+avgDistRd2012 <- mean(dfNoRoad2012$distanceToPavedRoad, na.rm = TRUE)
+
+
+rm(temp_dfRoad2005, temp_dfRoad2012)
+```
+
+```{r dataHealth, include=FALSE, message='hide'}
+
+avg_mbAnyDisease05 <- mean(df2005$mbAnyDisease, na.rm=TRUE)
+avg_mbAnyDisease12 <- mean(df2012$mbAnyDisease, na.rm=TRUE)
+
+avg_mbComDisease05 <- mean(df2005$mbComDisease, na.rm=TRUE)
+avg_mbComDisease12 <- mean(df2012$mbComDisease, na.rm=TRUE)
+
+avg_mbNonComDisease05 <- mean(df2005$mbNonComDisease, na.rm=TRUE)
+avg_mbNonComDisease12 <- mean(df2012$mbNonComDisease, na.rm=TRUE)
+
+diseaseMeansDF <- data.frame(Year=c('2005', '2012'))
+startDis <- which(colnames(df) == 'mbCataract')
+endDis <- which(colnames(df) == 'mbOtherLongTerm')
+diseaseNames <- colnames(df[,startDis:endDis])
+for(disease in diseaseNames){
+  diseaseMeansDF[,disease] <- c(mean(df2005[,disease]), mean(df2012[,disease]))
+}
+
+
+rm(startDis, endDis, disease)
+```
+
+
+
+
+# Regressions
+
+## Any Disease
+```{r anyDisease, fig.width=3, include=FALSE, results='asis'}
+
+plm.1 <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model="within")
+plm.2 <- plm(data=df, mbAnyDisease ~ roadPaved + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.3 <- plm(data=df, mbAnyDisease ~ roadPaved + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index = c("id", "year"), model="within")
+r.se.1 <- sqrt(diag(vcovHC(plm.1, type = "HC1")))
+r.se.2 <- sqrt(diag(vcovHC(plm.2, type = "HC1")))
+r.se.3 <- sqrt(diag(vcovHC(plm.3, type = "HC1")))
+
+
+plm.4 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.5 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), modsel="within")
+plm.6 <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index = c("id", "year"), model="within")
+r.se.4 <- sqrt(diag(vcovHC(plm.4, type = "HC1")))
+r.se.5 <- sqrt(diag(vcovHC(plm.5, type = "HC1")))
+r.se.6 <- sqrt(diag(vcovHC(plm.6, type = "HC1")))
+
+stargazer(plm.1, plm.2, plm.3, se=list(r.se.1, r.se.2, r.se.3), title="Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+stargazer(plm.4, plm.5, plm.6, se=list(r.se.4, r.se.5, r.se.6),title="Road Distance and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+```
+
+
+```{r anyDisease2}
+plm.1f <- plm(data=df, mbAnyDisease ~ roadPaved, index = c("id", "year"), model="within")
+plm.2f <- plm(data=df, mbAnyDisease ~ roadPaved + income, index = c("id", "year"), model="within")
+plm.3f <- plm(data=df, mbAnyDisease ~ roadPaved + literate, index = c("id", "year"), model="within")
+plm.4f <- plm(data=df, mbAnyDisease ~ roadPaved + smokeTobacco, index = c("id", "year"), model="within")
+plm.5f <- plm(data=df, mbAnyDisease ~ roadPaved + ownToilet, index = c("id", "year"), model="within")
+plm.6f <- plm(data=df, mbAnyDisease ~ roadPaved + electricity, index = c("id", "year"), model="within")
+plm.7f <- plm(data=df, mbAnyDisease ~ roadPaved + seenDoctor, index = c("id", "year"), model="within")
+plm.8f <- plm(data=df, mbAnyDisease ~ roadPaved + income + smokeTobacco, index = c("id", "year"), model="within")
+
+
+r.se.1 <- sqrt(diag(vcovHC(plm.1f, type = "HC1")))
+r.se.2 <- sqrt(diag(vcovHC(plm.2f, type = "HC1")))
+r.se.3 <- sqrt(diag(vcovHC(plm.3f, type = "HC1")))
+r.se.4 <- sqrt(diag(vcovHC(plm.4f, type = "HC1")))
+r.se.5 <- sqrt(diag(vcovHC(plm.5f, type = "HC1")))
+r.se.6 <- sqrt(diag(vcovHC(plm.6f, type = "HC1")))
+r.se.7 <- sqrt(diag(vcovHC(plm.7f, type = "HC1")))
+r.se.8 <- sqrt(diag(vcovHC(plm.8f, type = "HC1")))
+
+stargazer(plm.1f, plm.2f, plm.3f, plm.4f, plm.5f, plm.6f, plm.7f, plm.8f, se=list(r.se.1, r.se.2, r.se.3, r.se.4, r.se.5, r.se.6, r.se.7, r.se.8), title="Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", type="text", omit.stat = c("f"), header=FALSE)
+
+```
+
+```{r anyDisease3}
+plm.1f <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.2f <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income, index = c("id", "year"), model="within")
+plm.3f <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + literate, index = c("id", "year"), model="within")
+plm.4f <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + smokeTobacco, index = c("id", "year"), model="within")
+plm.5f <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + ownToilet, index = c("id", "year"), model="within")
+plm.6f <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + electricity, index = c("id", "year"), model="within")
+plm.7f <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + seenDoctor, index = c("id", "year"), model="within")
+plm.8f <- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + smokeTobacco, index = c("id", "year"), model="within")
+
+
+r.se.1 <- sqrt(diag(vcovHC(plm.1f, type = "HC1")))
+r.se.2 <- sqrt(diag(vcovHC(plm.2f, type = "HC1")))
+r.se.3 <- sqrt(diag(vcovHC(plm.3f, type = "HC1")))
+r.se.4 <- sqrt(diag(vcovHC(plm.4f, type = "HC1")))
+r.se.5 <- sqrt(diag(vcovHC(plm.5f, type = "HC1")))
+r.se.6 <- sqrt(diag(vcovHC(plm.6f, type = "HC1")))
+r.se.7 <- sqrt(diag(vcovHC(plm.7f, type = "HC1")))
+r.se.8 <- sqrt(diag(vcovHC(plm.8f, type = "HC1")))
+
+stargazer(plm.1f, plm.2f, plm.3f, plm.4f, plm.5f, plm.6f, plm.7f, plm.8f, se=list(r.se.1, r.se.2, r.se.3, r.se.4, r.se.5, r.se.6, r.se.7, r.se.8), title="Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", type="text", omit.stat = c("f"), header=FALSE)
+
+```
+
+
+## Communicable Disease
+
+```{r comDisease, fig.width=3, include=FALSE, results='asis'}
+
+plm.7 <- plm(data=df, mbComDisease ~ roadPaved, index = c("id", "year"), model="within")
+plm.8 <- plm(data=df, mbComDisease ~ roadPaved + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.9 <- plm(data=df, mbComDisease ~ roadPaved + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index = c("id", "year"), model="within")
+r.se.7 <- sqrt(diag(vcovHC(plm.7, type = "HC1")))
+r.se.8 <- sqrt(diag(vcovHC(plm.8, type = "HC1")))
+r.se.9 <- sqrt(diag(vcovHC(plm.9, type = "HC1")))
+
+
+plm.10 <- plm(data=dfNoRoad, mbComDisease ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.11 <- plm(data=dfNoRoad, mbComDisease ~ lnDistToPvdRd + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.12 <- plm(data=dfNoRoad, mbComDisease ~ lnDistToPvdRd + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index = c("id", "year"), model="within")
+r.se.10 <- sqrt(diag(vcovHC(plm.10, type = "HC1")))
+r.se.11 <- sqrt(diag(vcovHC(plm.11, type = "HC1")))
+r.se.12 <- sqrt(diag(vcovHC(plm.12, type = "HC1")))
+
+stargazer(plm.7, plm.8, plm.9, se=list(r.se.7, r.se.8, r.se.9), title="Road Paved and Incidence of Communicable Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+stargazer(plm.10, plm.11, plm.12, se=list(r.se.10, r.se.11, r.se.12),title="Road Distance and Incidence of Communicable Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+```
+
+
+## Non-Communicable Disease
+
+```{r nonComDisease, fig.width=3, include=FALSE, results='asis'}
+
+plm.13 <- plm(data=df, mbNonComDisease ~ roadPaved, index = c("id", "year"), model="within")
+plm.14 <- plm(data=df, mbNonComDisease ~ roadPaved + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.15 <- plm(data=df, mbNonComDisease ~ roadPaved + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index = c("id", "year"), model="within")
+r.se.13 <- sqrt(diag(vcovHC(plm.13, type = "HC1")))
+r.se.14 <- sqrt(diag(vcovHC(plm.14, type = "HC1")))
+r.se.15 <- sqrt(diag(vcovHC(plm.15, type = "HC1")))
+
+
+plm.16 <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.17 <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.18 <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index = c("id", "year"), model="within")
+r.se.16 <- sqrt(diag(vcovHC(plm.16, type = "HC1")))
+r.se.17 <- sqrt(diag(vcovHC(plm.17, type = "HC1")))
+r.se.18 <- sqrt(diag(vcovHC(plm.18, type = "HC1")))
+
+stargazer(plm.13, plm.14, plm.15, se=list(r.se.13, r.se.14, r.se.15), title="Road Paved and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+stargazer(plm.16, plm.17, plm.18, se=list(r.se.16, r.se.17, r.se.18),title="Road Distance and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+```
+
+```{r nonCommDisease2}
+plm.1f <- plm(data=df, mbNonComDisease ~ roadPaved, index = c("id", "year"), model="within")
+plm.2f <- plm(data=df, mbNonComDisease ~ roadPaved + income, index = c("id", "year"), model="within")
+plm.3f <- plm(data=df, mbNonComDisease ~ roadPaved + literate, index = c("id", "year"), model="within")
+plm.4f <- plm(data=df, mbNonComDisease ~ roadPaved + smokeTobacco, index = c("id", "year"), model="within")
+plm.5f <- plm(data=df, mbNonComDisease ~ roadPaved + ownToilet, index = c("id", "year"), model="within")
+plm.6f <- plm(data=df, mbNonComDisease ~ roadPaved + electricity, index = c("id", "year"), model="within")
+plm.7f <- plm(data=df, mbNonComDisease ~ roadPaved + seenDoctor, index = c("id", "year"), model="within")
+plm.8f <- plm(data=df, mbNonComDisease ~ roadPaved + income + smokeTobacco, index = c("id", "year"), model="within")
+
+
+r.se.1 <- sqrt(diag(vcovHC(plm.1f, type = "HC1")))
+r.se.2 <- sqrt(diag(vcovHC(plm.2f, type = "HC1")))
+r.se.3 <- sqrt(diag(vcovHC(plm.3f, type = "HC1")))
+r.se.4 <- sqrt(diag(vcovHC(plm.4f, type = "HC1")))
+r.se.5 <- sqrt(diag(vcovHC(plm.5f, type = "HC1")))
+r.se.6 <- sqrt(diag(vcovHC(plm.6f, type = "HC1")))
+r.se.7 <- sqrt(diag(vcovHC(plm.7f, type = "HC1")))
+r.se.8 <- sqrt(diag(vcovHC(plm.8f, type = "HC1")))
+
+stargazer(plm.1f, plm.2f, plm.3f, plm.4f, plm.5f, plm.6f, plm.7f, plm.8f, se=list(r.se.1, r.se.2, r.se.3, r.se.4, r.se.5, r.se.6, r.se.7, r.se.8), title="Road Paved and Incidence of Non Communicable Disease: OLS with Village and Time-Fixed Effects", type="text", omit.stat = c("f"), header=FALSE)
+```
+
+```{r nonCommDisease3}
+plm.1f <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.2f <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + income, index = c("id", "year"), model="within")
+plm.3f <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + literate, index = c("id", "year"), model="within")
+plm.4f <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + smokeTobacco, index = c("id", "year"), model="within")
+plm.5f <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + ownToilet, index = c("id", "year"), model="within")
+plm.6f <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + electricity, index = c("id", "year"), model="within")
+plm.7f <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + seenDoctor, index = c("id", "year"), model="within")
+plm.8f <- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + income + smokeTobacco, index = c("id", "year"), model="within")
+
+
+r.se.1 <- sqrt(diag(vcovHC(plm.1f, type = "HC1")))
+r.se.2 <- sqrt(diag(vcovHC(plm.2f, type = "HC1")))
+r.se.3 <- sqrt(diag(vcovHC(plm.3f, type = "HC1")))
+r.se.4 <- sqrt(diag(vcovHC(plm.4f, type = "HC1")))
+r.se.5 <- sqrt(diag(vcovHC(plm.5f, type = "HC1")))
+r.se.6 <- sqrt(diag(vcovHC(plm.6f, type = "HC1")))
+r.se.7 <- sqrt(diag(vcovHC(plm.7f, type = "HC1")))
+r.se.8 <- sqrt(diag(vcovHC(plm.8f, type = "HC1")))
+
+stargazer(plm.1f, plm.2f, plm.3f, plm.4f, plm.5f, plm.6f, plm.7f, plm.8f, se=list(r.se.1, r.se.2, r.se.3, r.se.4, r.se.5, r.se.6, r.se.7, r.se.8), title="Road Paved and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects", type="text", omit.stat = c("f"), header=FALSE)
+
+```
+
+## STD/HIV
+
+```{r STDorHIV, fig.width=3, include=FALSE, results='asis'}
+
+plm.19 <- plm(data=df, mbSTDorAIDS ~ roadPaved, index = c("id", "year"), model="within")
+plm.20 <- plm(data=df, mbSTDorAIDS ~ roadPaved + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.21 <- plm(data=df, mbSTDorAIDS ~ roadPaved + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index = c("id", "year"), model="within")
+r.se.19 <- sqrt(diag(vcovHC(plm.19, type = "HC1")))
+r.se.20 <- sqrt(diag(vcovHC(plm.20, type = "HC1")))
+r.se.21 <- sqrt(diag(vcovHC(plm.21, type = "HC1")))
+
+
+plm.22 <- plm(data=dfNoRoad, mbSTDorAIDS ~ lnDistToPvdRd, index = c("id", "year"), model="within")
+plm.23 <- plm(data=dfNoRoad, mbSTDorAIDS ~ lnDistToPvdRd + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor, index = c("id", "year"), model="within")
+plm.24 <- plm(data=dfNoRoad, mbSTDorAIDS ~ lnDistToPvdRd + income + literate + smokeTobacco + ownToilet + electricity + seenDoctor + ImmuniCamps + PctPipedWater + healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index = c("id", "year"), model="within")
+r.se.22 <- sqrt(diag(vcovHC(plm.22, type = "HC1")))
+r.se.23 <- sqrt(diag(vcovHC(plm.23, type = "HC1")))
+r.se.24 <- sqrt(diag(vcovHC(plm.24, type = "HC1")))
+
+stargazer(plm.19, plm.20, plm.21, se=list(r.se.19, r.se.20, r.se.21), title="Road Paved and Incidence of STD/AIDS: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+stargazer(plm.22, plm.23, plm.24, se=list(r.se.22, r.se.23, r.se.24),title="Road Distance and Incidence of STD/AIDS: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

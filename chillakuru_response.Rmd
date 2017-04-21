@@ -16,10 +16,10 @@ header-includes:
 
 # Requests from Professor Sinclair
   
-  * Professor requested to use the smallest sample for all analysis as certain controls lowered the sample size during regression analysis. This was addressed by dropping all observations with missing values for all regressor terms. This dropped the sample size from 2800 observations to 2585 obersvations (`r round(100*(2800-2585)/2800,2)`% drop in sample size).
+  * Professor requested to use the smallest sample for all analysis as certain controls lowered the sample size during regression analysis. This was addressed by dropping all observations with missing values for all regressor terms. This dropped the sample size from 2800 observations to 2545 obersvations (`r round(100*(2800-2545)/2800,2)`% drop in sample size).
   * Professor commented why so many obersvations were missing for Equations (2) regressions (599 observations used in Equation (1) regressions compared to 2585 used in Equation (2) regressions). This is because Equation (2) only examines how change in distance to paved affects health outcomes, and so the analysis includes only villages with a paved road (599 villages). This is stated Section III (Model) of the paper, and this approach for analysis was agreed upon with the Professor for ease of interpreability and for isolating the two effects (distance to road and if a road is present or not).
   * Professor commented to examine the R^2^ values between the two models to see which would be a better model. An analysis of Adjusted R^2^ was included in the Robustness Checks section of the paper. Adjusted R^2^ is more appropriate for analysis because it penalizes additional of more variables into the regression, thus is a more rigorous measure of fit. Analysis of it was included in the Robustness Checks section because I discuss the extremely weak Adjusted R^2^'s as a weakness in the model.
-
+  * Professor suggested to examine which control variables cause a large drop in the coefficient when looking at the impact of road on any disease. This analysis is now included in the results section and the Professor's suggestion was expanded to look at a similar drop in non-communicable disease. The "smokeTobacco" variable was the primary cause the drop, with the "income" variable playing an additional minor role in some circumstances.
 
   * TODO:
     * Professor suggested that the stastistical non-significant findings of the impact of paved roads and distance to paved road on health outcomes could be due to countervailing forces.
