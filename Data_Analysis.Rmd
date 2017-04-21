@@ -102,6 +102,33 @@ rm(startDis, endDis, disease)
 
 # Regressions
 
+## Base Specification
+```{r baseSpecs, fig.width=3, include=FALSE, results='asis'}
+lm.1 <- lm(data=df, mbAnyDisease ~ roadPaved)
+lm.2 <- lm(data=df, mbComDisease ~ roadPaved)
+lm.3 <- lm(data=df, mbNonComDisease ~ roadPaved)
+lm.4 <- lm(data=df, mbSTDorAIDS ~ roadPaved)
+r.se.lm.1 <- sqrt(diag(vcovHC(lm.1, type = "HC1")))
+r.se.lm.2 <- sqrt(diag(vcovHC(lm.2, type = "HC1")))
+r.se.lm.3 <- sqrt(diag(vcovHC(lm.3, type = "HC1")))
+r.se.lm.4 <- sqrt(diag(vcovHC(lm.4, type = "HC1")))
+
+lm.5 <- lm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd)
+lm.6 <- lm(data=dfNoRoad, mbComDisease ~ lnDistToPvdRd)
+lm.7 <- lm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd)
+lm.8 <- lm(data=dfNoRoad, mbSTDorAIDS ~ lnDistToPvdRd)
+r.se.lm.5 <- sqrt(diag(vcovHC(lm.5, type = "HC1")))
+r.se.lm.6 <- sqrt(diag(vcovHC(lm.6, type = "HC1")))
+r.se.lm.7 <- sqrt(diag(vcovHC(lm.7, type = "HC1")))
+r.se.lm.8 <- sqrt(diag(vcovHC(lm.8, type = "HC1")))
+
+
+stargazer(lm.1, lm.2, lm.3, lm.4, se=list(r.se.lm.1, r.se.lm.2, r.se.lm.3, r.se.lm.4), title="Road Paved and Incidence of Disease Types: OLS Base Specification", type="text", omit.stat=c("ser"), header=FALSE)
+stargazer(lm.5, lm.6, lm.7, lm.8, se=list(r.se.lm.5, r.se.lm.6, r.se.lm.7, r.se.lm.8),title="Road Distance and Incidence of Disease Types: OLS Base Specification", type="text", omit.stat=c("ser"), header=FALSE)
+```
+
+
+
 ## Any Disease
 ```{r anyDisease, fig.width=3, include=FALSE, results='asis'}
 
