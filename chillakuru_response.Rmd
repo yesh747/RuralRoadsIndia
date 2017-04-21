@@ -23,6 +23,7 @@ header-includes:
   * Professor suggested to include base model (univariate without panel effects) regressions. These are now included in the analysis in the Results Section.
 
   * TODO:
+  
     * Professor suggested that the stastistical non-significant findings of the impact of paved roads and distance to paved road on health outcomes could be due to countervailing forces.
 
 
@@ -31,6 +32,7 @@ header-includes:
   * Minor grammatical, spelling, and formatting changes were made.
   
 ## Intro Section
+
   * Jessica suggested to define "rural" and explain why/how villages were chosen. This explanation is now given. "Rural" as used in our analysis is determined by the guidelines used by IHDS when constructing their dataset.
   * Clarifications were made regarding the usage of "robust" when describing data and the upland Orissa region.
   * As requested by referee, brief definitions of communicable and non-communicable diseases were included.
@@ -39,6 +41,7 @@ header-includes:
 
   
 ## Data Section
+
   * Jessica suggested to add coefficients to the slop of the lines in the graph. These are included in Footnote 1.
   * As suggested by referee, relationship between second to last paragraph and abstract was clarified.
   * A discussion was included in the Robustness Section of why not all observations of villages were used in the analysis.
@@ -47,15 +50,22 @@ header-includes:
   
 ## Robustness Checks Section
   
-  * non-random road placement was addressed here.
+  * Non-random road placement was addressed here, as suggested by referee.
+  * As suggested by referee, omitted variable vias was further discussed here.
 
+## Results
   
+  * As suggested by referee, a more thorourgh discussion of Adjusted R^2 was included in the results section.
+  * Referee suggested rewording "percentage point increase" increase to "point increase in percent" stating that I was not performing a logit/probit analysis. However, "percentage point increase" and "point increase in percent" are referring to the same thing. "Percent increase" would be the appropriate terminology for a logit/probit model: <https://www.reed.edu/academic_support/pdfs/qskills/percent.pdf>.
+  
+
+
+
   * TODO: Data
     * Give more descriptive statistics about control variables
     
   * TODO: Results
     * Add more interprettions of Adjusted R^2 and Std. Error
-    * Comment about percentage point increase vs point increase in percent
     * Put the STD/AIDs in the intro section
     
   * TODO: Robustness

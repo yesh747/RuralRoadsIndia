@@ -95,7 +95,7 @@ Djemai found that both effects independently occur and are significant, but the 
  2. By accelerating economic development and thus personal hygiene and sanitation, roads will improve overall health outcomes.
  3. By increasing the likelihood of communication from high-risk mobile groups, roads will worsen health outcomes related to communicable diseases (diseases that can be transmitted from person to person, such as tuberculosis), but will have no effect for non-communicable diseases (diseases that cannot be transmitted from person to person, such as cancer).
  
-This paper uses panel data from the India Human Development Survey (IHDS) to demonstrate the relationship between rural road expansion and health outcomes, as defined by incidence of a major morbidity (i.e. long-term) diseases grouped into the following categories: any major morbidity disease incidence, communicable disease incidence, and non-communicable disease.Communicable disease incidence includes having at least one of the following: STD/AIDS, polio, or tuberculosis. Non-communicable disease incidence includes having at least one of the following: cataracts, high blood pressure, heart disease, diabetes, leprosy, cancer, asthma, paralysis, epilepsy, or mental illness. Any disease incidence includes having at least one communicable or non-communicable disease. Using a linear regression model revealed that road expansion, whether by decreasing distance to nearest paved road or building a paved road in the village, had no impact on the incidence of any disease in rural India.
+This paper uses panel data from the India Human Development Survey (IHDS) to demonstrate the relationship between rural road expansion and health outcomes, as defined by incidence of a major morbidity (i.e. long-term) diseases grouped into the following categories: any major morbidity disease incidence, communicable disease incidence, and non-communicable disease.Communicable disease incidence includes having at least one of the following: STD/AIDS, polio, or tuberculosis. Non-communicable disease incidence includes having at least one of the following: cataracts, high blood pressure, heart disease, diabetes, leprosy, cancer, asthma, paralysis, epilepsy, or mental illness. Any disease incidence includes having at least one communicable or non-communicable disease. Additionally, in order to compare results directly with Djemai's findings in Africa, an analysis of the relationship between paved road access and STD/AIDS will be performed. Using a linear regression model revealed that road expansion, whether by decreasing distance to nearest paved road or building a paved road in the village, had no relationship on the incidence of any of the disease types in rural India.
 
 This paper is structured as follows. Section II will examine IHDS data, discussing its strengths and weaknesses. Section III will introduce the two main models that form the basis for the analysis. The Section IV discusses the main results from applying the models to the IHDS data. Section V examines the robustness of the findings. Section VI will summarize findings, and Sections VII, VIII, and IX contain references, tables, and the appendix, respectively.
 
@@ -223,7 +223,7 @@ r.se.4 <- sqrt(diag(vcovHC(plm.4, type = "HC1")))
 r.se.5 <- sqrt(diag(vcovHC(plm.5, type = "HC1")))
 r.se.6 <- sqrt(diag(vcovHC(plm.6, type = "HC1")))
 
-stargazer(plm.1, plm.2, plm.3, se=list(r.se.1, r.se.2, r.se.3), title="Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
+# stargazer(plm.1, plm.2, plm.3, se=list(r.se.1, r.se.2, r.se.3), title="Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
 # stargazer(plm.4, plm.5, plm.6, se=list(r.se.4, r.se.5, r.se.6),title="Road Distance and Incidence of Any Disease: OLS with Village and Time-Fixed Effects", type="text", header=FALSE)
 ```
 
@@ -401,6 +401,7 @@ One potential caveat in this analysis was the granularity of the unit of observa
 The IHDS data itself may cause bias in the results. As it was a questionairre, underreporting of health information, especially conditions that carry significant stigma like mental illness, may bias coefficients downwards. Not all the villages in the IHDS dataset were used because of missing variables for some observations. Of the 1503 villages surveyed each year, only `r dim(dfMerge)[1]` (`r 100*dim(dfMerge)[1]/1503`%) villages were used in the analysis. This may cause an unobserved bias as villages that were missing information may be the ones that had the poorest road access, and, thus, the survey conductors were unable to reach the village.
 
 [^6]: Adjusted R^2^ for Regressions 1, 2, and 3 (Equation 1) is higher than that for Regressions 4, 5, and 6 (Equation 2), in Tables 5, 6, 7, and 8.
+
 
 # VI. Conclusion
 
