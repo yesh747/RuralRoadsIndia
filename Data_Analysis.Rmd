@@ -2,7 +2,9 @@
 title: "Data_Analysi"
 author: "Yeshwant Chillakuru"
 date: "4/20/2017"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -37,9 +39,29 @@ df2012 <- read.csv("ruralHealthAndRoadsOfIndianVillages2012.csv", header = TRUE,
 
 df <- rename(df, lnDistToPvdRd=lnDistanceToPavedRoad, ImmuniCamps=ImmunizationCampaignsNumber, PctPipedWater = drinkingWaterSource.Piped, Treat.SameVil = mbTreatmentWhere1.SameVillage, Treat.OthrVil=mbTreatmentWhere1.AnotherVillage, Treat.OthrTwn=mbTreatmentWhere1.OtherTown, Treat.DstrctTwn=mbTreatmentWhere1.DistrictTown, primaryHealthCntr=primaryHealthCenter, literate=illiterate, healthSubCntr=healthSubCenter, commHealthCntr=communityHealthCenter, govtMaternityCntr=govtMaternityCenter, pvtClinic=pvtClinicTrainedDoc, distHealthSubCntr=distHealthSubCenter, distCommHealthCntr=distCommunityHealthCenter, distGovtMaternityCntr=distGovtMaternityCenter, distDstrctHosp=distDistrictHospital, distPrmry=distPrimaryHealthCenter, distPvtClinic=distPvtClinicTrainedDoc)
 
-indepVars <- c("roadPaved", "income", "literate", "smokeTobacco", "ownToilet", "electricity", "seenDoctor", "ImmuniCamps", "PctPipedWater", "healthSubCntr", "primaryHealthCntr", "commHealthCntr", "pvtClinic", "pvtHospital", "lnDistToPvdRd")
+df2005 <- rename(df2005, lnDistToPvdRd=lnDistanceToPavedRoad, ImmuniCamps=ImmunizationCampaignsNumber, PctPipedWater = drinkingWaterSource.Piped, Treat.SameVil = mbTreatmentWhere1.SameVillage, Treat.OthrVil=mbTreatmentWhere1.AnotherVillage, Treat.OthrTwn=mbTreatmentWhere1.OtherTown, Treat.DstrctTwn=mbTreatmentWhere1.DistrictTown, primaryHealthCntr=primaryHealthCenter, literate=illiterate, healthSubCntr=healthSubCenter, commHealthCntr=communityHealthCenter, govtMaternityCntr=govtMaternityCenter, pvtClinic=pvtClinicTrainedDoc, distHealthSubCntr=distHealthSubCenter, distCommHealthCntr=distCommunityHealthCenter, distGovtMaternityCntr=distGovtMaternityCenter, distDstrctHosp=distDistrictHospital, distPrmry=distPrimaryHealthCenter, distPvtClinic=distPvtClinicTrainedDoc)
+
+df2012 <- rename(df2012, lnDistToPvdRd=lnDistanceToPavedRoad, ImmuniCamps=ImmunizationCampaignsNumber, PctPipedWater = drinkingWaterSource.Piped, Treat.SameVil = mbTreatmentWhere1.SameVillage, Treat.OthrVil=mbTreatmentWhere1.AnotherVillage, Treat.OthrTwn=mbTreatmentWhere1.OtherTown, Treat.DstrctTwn=mbTreatmentWhere1.DistrictTown, primaryHealthCntr=primaryHealthCenter, literate=illiterate, healthSubCntr=healthSubCenter, commHealthCntr=communityHealthCenter, govtMaternityCntr=govtMaternityCenter, pvtClinic=pvtClinicTrainedDoc, distHealthSubCntr=distHealthSubCenter, distCommHealthCntr=distCommunityHealthCenter, distGovtMaternityCntr=distGovtMaternityCenter, distDstrctHosp=distDistrictHospital, distPrmry=distPrimaryHealthCenter, distPvtClinic=distPvtClinicTrainedDoc)
+
+
+indepVars <- c("roadPaved", "income", "literate", "smokeTobacco", "ownToilet", "electricity", "seenDoctor", "ImmuniCamps", "PctPipedWater", "healthSubCntr", "primaryHealthCntr", "commHealthCntr", "pvtClinic", "pvtHospital", "distanceToPavedRoad", "lnDistToPvdRd")
+
+df[df < 0] <- NA
+df2005[df2005 < 0] <- NA
+df2012[df2012 < 0] <- NA
+
 
 df <- df[complete.cases(df[,indepVars]),]
+df2005 <- df2005[complete.cases(df2005[,indepVars]),]
+df2012 <- df2012[complete.cases(df2012[,indepVars]),]
+
+# Convert income to 100,000 rupee units
+df$income <- df$income / 100000
+df2005$income <- df2005$income / 100000
+df2012$income <- df2012$income / 100000
+
+
+
 
 dfNoRoad <- df[(df$roadPaved==0),]
 dfNoRoad2005 <- df2005[(df2005$roadPaved==0), ]
@@ -52,6 +74,7 @@ dfNoRoad2012[, c('roadPaved', 'yearsWithPavedRoad')] <- NULL
 dfNoRoad <- dfNoRoad[complete.cases(dfNoRoad[, c('id','year')]),]
 dfNoRoad2005 <- dfNoRoad2005[complete.cases(dfNoRoad2005[, c('id','year')]),]
 dfNoRoad2012 <- dfNoRoad2012[complete.cases(dfNoRoad2012[, c('id','year')]),]
+
 
 dfMerge <- merge(df2005, df2012, by="id")
 
@@ -96,6 +119,26 @@ for(disease in diseaseNames){
 
 rm(startDis, endDis, disease)
 ```
+
+```{r controlSummary, include=FALSE}
+
+note <- c("roadPaved: 1 if village has a paved road, 0 if it does not.", "distanceToPavedRoad: the distance to the nearest paved road in villages without a paved road.", "income: average income of village in hundred thousand Indian Rupee units.", "literate: percentage of villagers in a village that can read and write.", "smokeTobacco: percentage of villagers in a village that smoke tobacco.", "ownToilet: the percentage of villagers in a village that own a toilet with plumbing inside their home.", "electricity: percentage of villagers in a village that have access to electricity.", "seenDoctor: percentage of villagers in a village that have seen a doctor for minor illness in the past five years.", "PctPipedWater: percentage of villagers in a village that have access to a piped water supply", "        and plumbing inside their home.", "healthSubCntr, primaryHealthCntr, commHealthCntr, pvtClinic, pvtHospital:", "        number of those respective health facilities in each village.")
+
+vars <- indepVars[1:length(indepVars)-1]
+
+df2005Vars <- df2005[,vars]
+df2005Vars$distanceToPavedRoad[df2005Vars$distanceToPavedRoad == 0] <- NA
+
+df2012Vars <- df2012[,vars]
+df2012Vars$distanceToPavedRoad[df2012Vars$distanceToPavedRoad == 0] <- NA
+
+
+stargazer(df2005Vars, title="2005 Summary Statistics: Household & Village Characteristics", header = FALSE, type="text")
+stargazer(df2012Vars, title="2012 Summary Statistics: Household & Village Characteristics", notes=note, header = FALSE, type="text")
+
+```
+
+
 
 
 
@@ -322,7 +365,12 @@ stargazer(plm.22, plm.23, plm.24, se=list(r.se.22, r.se.23, r.se.24),title="Road
 
 
 
+```{r summarystats, echo=FALSE, results='asis'}
 
+stargazer(df2005Vars, title="2005 Summary Statistics: Household and Village Characteristics", header = FALSE)
+stargazer(df2012Vars, title="2012 Summary Statistics: Household and Village Characteristics", notes=note, header = FALSE)
+
+```
 
 
 

@@ -22,10 +22,6 @@ header-includes:
   * Professor suggested to examine which control variables cause a large drop in the coefficient when looking at the impact of road on any disease. This analysis is now included in the results section and the Professor's suggestion was expanded to look at a similar drop in non-communicable disease. The "smokeTobacco" variable was the primary cause the drop, with the "income" variable playing an additional minor role in some circumstances.
   * Professor suggested to include base model (univariate without panel effects) regressions. These are now included in the analysis in the Results Section.
 
-  * TODO:
-  
-    * Professor suggested that the stastistical non-significant findings of the impact of paved roads and distance to paved road on health outcomes could be due to countervailing forces.
-
 
 # Requests from Jessica Goldenring (referee)
 
@@ -38,45 +34,35 @@ header-includes:
   * As requested by referee, brief definitions of communicable and non-communicable diseases were included.
   * Referee suggested use of acronym STI instead of STD. However, IHDS data encodes data as STD, and I decided to use STD acronym in order to maintain consistency with parent dataset and the IHDS documentation.
   * Road map now includes the conclusion, as suggested by the referee.
+  * As suggested by referee, discussion of my analysis on STD/AIDS is included in the introduction.
 
   
 ## Data Section
 
-  * Jessica suggested to add coefficients to the slop of the lines in the graph. These are included in Footnote 1.
+  * Jessica suggested to add coefficients to the slop of the lines in the graph. These are now included in a footnote.
   * As suggested by referee, relationship between second to last paragraph and abstract was clarified.
   * A discussion was included in the Robustness Section of why not all observations of villages were used in the analysis.
   * Jessica was confused to the meaning of the "$diseaseIncidence_{it} = mbAnyDisease_{it}$" notation. This notation was replaced with "$diseaseIncidence_{it}$ is set to $mbAnyDisease_{it}$" as a result.
   * As suggested, an explanation of the log transformation of distance to paved road was included in a footnote in the Model section.
+  * As suggested by the referee, summary statistics were added for the control variables in Table 3 and 
+ 
+  
+## Results
+  
+  * Referee suggested rewording "percentage point increase" increase to "point increase in percent" stating that I was not performing a logit/probit analysis. However, "percentage point increase" and "point increase in percent" are referring to the same thing. "Percent increase" would be the appropriate terminology for a logit/probit model: <https://www.reed.edu/academic_support/pdfs/qskills/percent.pdf>.
+  
   
 ## Robustness Checks Section
   
   * Non-random road placement was addressed here, as suggested by referee.
   * As suggested by referee, omitted variable vias was further discussed here.
-
-## Results
-  
-  * As suggested by referee, a more thorourgh discussion of Adjusted R^2 was included in the results section.
-  * Referee suggested rewording "percentage point increase" increase to "point increase in percent" stating that I was not performing a logit/probit analysis. However, "percentage point increase" and "point increase in percent" are referring to the same thing. "Percent increase" would be the appropriate terminology for a logit/probit model: <https://www.reed.edu/academic_support/pdfs/qskills/percent.pdf>.
-  
+  * As suggested by referee, internal validity, with respect to survey biases and self-reporting health-outcomes, was discussed.
+  * As suggested by referee, external validity, regarding generalization of results to India and broader, is discussed.
 
 
+## Conclusion
+  * As suggested by referee, discussion about null findings and their reltinoaship to the Bell and van Dillen (2014) and Djemai (2011) papers was moved to the Robustness checks.
 
-  * TODO: Data
-    * Give more descriptive statistics about control variables
-    
-  * TODO: Results
-    * Add more interprettions of Adjusted R^2 and Std. Error
-    * Put the STD/AIDs in the intro section
-    
-  * TODO: Robustness
-    * Talk about internal validity and external validity
-    * Write more about omitted variable bias?
-    
-  * TODO: Conclusion
-    * Second paragraph about null findings should be moved to robustness
-    
-  * TODO: Examine the actual paper comments
-    
     
     
     

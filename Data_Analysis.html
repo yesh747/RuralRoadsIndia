@@ -128,17 +128,242 @@ $(document).ready(function () {
 </div>
 <div id="descriptive" class="section level1">
 <h1>Descriptive</h1>
+
+
 </div>
 <div id="regressions" class="section level1">
 <h1>Regressions</h1>
+<div id="base-specification" class="section level2">
+<h2>Base Specification</h2>
+</div>
 <div id="any-disease" class="section level2">
 <h2>Any Disease</h2>
+<pre class="r"><code>plm.1f &lt;- plm(data=df, mbAnyDisease ~ roadPaved, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.2f &lt;- plm(data=df, mbAnyDisease ~ roadPaved + income, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.3f &lt;- plm(data=df, mbAnyDisease ~ roadPaved + literate, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.4f &lt;- plm(data=df, mbAnyDisease ~ roadPaved + smokeTobacco, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.5f &lt;- plm(data=df, mbAnyDisease ~ roadPaved + ownToilet, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.6f &lt;- plm(data=df, mbAnyDisease ~ roadPaved + electricity, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.7f &lt;- plm(data=df, mbAnyDisease ~ roadPaved + seenDoctor, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.8f &lt;- plm(data=df, mbAnyDisease ~ roadPaved + income + smokeTobacco, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+
+
+r.se.1 &lt;- sqrt(diag(vcovHC(plm.1f, type = &quot;HC1&quot;)))
+r.se.2 &lt;- sqrt(diag(vcovHC(plm.2f, type = &quot;HC1&quot;)))
+r.se.3 &lt;- sqrt(diag(vcovHC(plm.3f, type = &quot;HC1&quot;)))
+r.se.4 &lt;- sqrt(diag(vcovHC(plm.4f, type = &quot;HC1&quot;)))
+r.se.5 &lt;- sqrt(diag(vcovHC(plm.5f, type = &quot;HC1&quot;)))
+r.se.6 &lt;- sqrt(diag(vcovHC(plm.6f, type = &quot;HC1&quot;)))
+r.se.7 &lt;- sqrt(diag(vcovHC(plm.7f, type = &quot;HC1&quot;)))
+r.se.8 &lt;- sqrt(diag(vcovHC(plm.8f, type = &quot;HC1&quot;)))
+
+stargazer(plm.1f, plm.2f, plm.3f, plm.4f, plm.5f, plm.6f, plm.7f, plm.8f, se=list(r.se.1, r.se.2, r.se.3, r.se.4, r.se.5, r.se.6, r.se.7, r.se.8), title=&quot;Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects&quot;, type=&quot;text&quot;, omit.stat = c(&quot;f&quot;), header=FALSE)</code></pre>
+<pre><code>## 
+## Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects
+## =====================================================================================
+##                                        Dependent variable:                           
+##              ------------------------------------------------------------------------
+##                                            mbAnyDisease                              
+##                (1)      (2)      (3)      (4)      (5)      (6)       (7)      (8)   
+## -------------------------------------------------------------------------------------
+## roadPaved    1.584*** 0.926*** 1.178*** 0.538**  1.263*** 1.210*** 1.295***   0.476* 
+##              (0.275)  (0.280)  (0.280)  (0.272)  (0.278)  (0.287)   (0.283)  (0.273) 
+##                                                                                      
+## income                1.764***                                               0.837***
+##                       (0.171)                                                (0.220) 
+##                                                                                      
+## literate                       9.272***                                              
+##                                (1.247)                                               
+##                                                                                      
+## smokeTobacco                            1.390***                             1.058***
+##                                         (0.116)                              (0.155) 
+##                                                                                      
+## ownToilet                                        0.048***                            
+##                                                  (0.006)                             
+##                                                                                      
+## electricity                                               0.030***                   
+##                                                           (0.005)                    
+##                                                                                      
+## seenDoctor                                                         -0.060***         
+##                                                                     (0.011)          
+##                                                                                      
+## -------------------------------------------------------------------------------------
+## Observations  2,544    2,544    2,544    2,544    2,544    2,544     2,544    2,544  
+## R2            0.030    0.110    0.076    0.140    0.093    0.059     0.049    0.151  
+## Adjusted R2   -1.284   -1.098   -1.178   -1.028   -1.137   -1.219   -1.241    -1.002 
+## =====================================================================================
+## Note:                                                     *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<pre class="r"><code>plm.1f &lt;- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.2f &lt;- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.3f &lt;- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + literate, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.4f &lt;- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + smokeTobacco, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.5f &lt;- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + ownToilet, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.6f &lt;- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + electricity, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.7f &lt;- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + seenDoctor, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.8f &lt;- plm(data=dfNoRoad, mbAnyDisease ~ lnDistToPvdRd + income + smokeTobacco, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+
+
+r.se.1 &lt;- sqrt(diag(vcovHC(plm.1f, type = &quot;HC1&quot;)))
+r.se.2 &lt;- sqrt(diag(vcovHC(plm.2f, type = &quot;HC1&quot;)))
+r.se.3 &lt;- sqrt(diag(vcovHC(plm.3f, type = &quot;HC1&quot;)))
+r.se.4 &lt;- sqrt(diag(vcovHC(plm.4f, type = &quot;HC1&quot;)))
+r.se.5 &lt;- sqrt(diag(vcovHC(plm.5f, type = &quot;HC1&quot;)))
+r.se.6 &lt;- sqrt(diag(vcovHC(plm.6f, type = &quot;HC1&quot;)))
+r.se.7 &lt;- sqrt(diag(vcovHC(plm.7f, type = &quot;HC1&quot;)))
+r.se.8 &lt;- sqrt(diag(vcovHC(plm.8f, type = &quot;HC1&quot;)))
+
+stargazer(plm.1f, plm.2f, plm.3f, plm.4f, plm.5f, plm.6f, plm.7f, plm.8f, se=list(r.se.1, r.se.2, r.se.3, r.se.4, r.se.5, r.se.6, r.se.7, r.se.8), title=&quot;Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects&quot;, type=&quot;text&quot;, omit.stat = c(&quot;f&quot;), header=FALSE)</code></pre>
+<pre><code>## 
+## Road Paved and Incidence of Any Disease: OLS with Village and Time-Fixed Effects
+## ===================================================================================
+##                                        Dependent variable:                         
+##               ---------------------------------------------------------------------
+##                                           mbAnyDisease                             
+##                 (1)     (2)      (3)     (4)      (5)     (6)       (7)      (8)   
+## -----------------------------------------------------------------------------------
+## lnDistToPvdRd -0.835* -0.813*  -0.530   -0.175  -0.609   -0.687   -0.599    -0.102 
+##               (0.442) (0.429)  (0.447) (0.406)  (0.429) (0.487)   (0.454)  (0.427) 
+##                                                                                    
+## income                3.039***                                              -0.836 
+##                       (0.924)                                              (1.272) 
+##                                                                                    
+## literate                       8.468*                                              
+##                                (4.369)                                             
+##                                                                                    
+## smokeTobacco                           2.238***                            2.503***
+##                                        (0.306)                             (0.436) 
+##                                                                                    
+## ownToilet                                       0.058**                            
+##                                                 (0.026)                            
+##                                                                                    
+## electricity                                             0.046***                   
+##                                                         (0.014)                    
+##                                                                                    
+## seenDoctor                                                       -0.072***         
+##                                                                   (0.024)          
+##                                                                                    
+## -----------------------------------------------------------------------------------
+## Observations    599     599      599     599      599     599       599      599   
+## R2             0.022   0.134    0.059   0.319    0.107   0.114     0.059    0.323  
+## Adjusted R2   -4.570   -3.978  -4.412   -2.916  -4.134   -4.096   -4.411    -2.929 
+## ===================================================================================
+## Note:                                                   *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
 </div>
 <div id="communicable-disease" class="section level2">
 <h2>Communicable Disease</h2>
 </div>
 <div id="non-communicable-disease" class="section level2">
-<h2>Non-communicable Disease</h2>
+<h2>Non-Communicable Disease</h2>
+<pre class="r"><code>plm.1f &lt;- plm(data=df, mbNonComDisease ~ roadPaved, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.2f &lt;- plm(data=df, mbNonComDisease ~ roadPaved + income, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.3f &lt;- plm(data=df, mbNonComDisease ~ roadPaved + literate, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.4f &lt;- plm(data=df, mbNonComDisease ~ roadPaved + smokeTobacco, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.5f &lt;- plm(data=df, mbNonComDisease ~ roadPaved + ownToilet, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.6f &lt;- plm(data=df, mbNonComDisease ~ roadPaved + electricity, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.7f &lt;- plm(data=df, mbNonComDisease ~ roadPaved + seenDoctor, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.8f &lt;- plm(data=df, mbNonComDisease ~ roadPaved + income + smokeTobacco, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+
+
+r.se.1 &lt;- sqrt(diag(vcovHC(plm.1f, type = &quot;HC1&quot;)))
+r.se.2 &lt;- sqrt(diag(vcovHC(plm.2f, type = &quot;HC1&quot;)))
+r.se.3 &lt;- sqrt(diag(vcovHC(plm.3f, type = &quot;HC1&quot;)))
+r.se.4 &lt;- sqrt(diag(vcovHC(plm.4f, type = &quot;HC1&quot;)))
+r.se.5 &lt;- sqrt(diag(vcovHC(plm.5f, type = &quot;HC1&quot;)))
+r.se.6 &lt;- sqrt(diag(vcovHC(plm.6f, type = &quot;HC1&quot;)))
+r.se.7 &lt;- sqrt(diag(vcovHC(plm.7f, type = &quot;HC1&quot;)))
+r.se.8 &lt;- sqrt(diag(vcovHC(plm.8f, type = &quot;HC1&quot;)))
+
+stargazer(plm.1f, plm.2f, plm.3f, plm.4f, plm.5f, plm.6f, plm.7f, plm.8f, se=list(r.se.1, r.se.2, r.se.3, r.se.4, r.se.5, r.se.6, r.se.7, r.se.8), title=&quot;Road Paved and Incidence of Non Communicable Disease: OLS with Village and Time-Fixed Effects&quot;, type=&quot;text&quot;, omit.stat = c(&quot;f&quot;), header=FALSE)</code></pre>
+<pre><code>## 
+## Road Paved and Incidence of Non Communicable Disease: OLS with Village and Time-Fixed Effects
+## =====================================================================================
+##                                        Dependent variable:                           
+##              ------------------------------------------------------------------------
+##                                          mbNonComDisease                             
+##                (1)      (2)      (3)      (4)      (5)      (6)       (7)      (8)   
+## -------------------------------------------------------------------------------------
+## roadPaved    0.153***  0.089*  0.108**   0.049   0.130*** 0.117**   0.115**   0.044  
+##              (0.045)  (0.047)  (0.047)  (0.050)  (0.045)  (0.048)   (0.049)  (0.050) 
+##                                                                                      
+## income                0.170***                                                0.076  
+##                       (0.036)                                                (0.050) 
+##                                                                                      
+## literate                       1.027***                                              
+##                                (0.298)                                               
+##                                                                                      
+## smokeTobacco                            0.138***                             0.107***
+##                                         (0.027)                              (0.036) 
+##                                                                                      
+## ownToilet                                        0.003***                            
+##                                                  (0.001)                             
+##                                                                                      
+## electricity                                               0.003***                   
+##                                                           (0.001)                    
+##                                                                                      
+## seenDoctor                                                         -0.008***         
+##                                                                     (0.003)          
+##                                                                                      
+## -------------------------------------------------------------------------------------
+## Observations  2,544    2,544    2,544    2,544    2,544    2,544     2,544    2,544  
+## R2            0.007    0.027    0.022    0.036    0.016    0.014     0.016    0.038  
+## Adjusted R2   -1.337   -1.293   -1.305   -1.273   -1.319   -1.323   -1.320    -1.269 
+## =====================================================================================
+## Note:                                                     *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<pre class="r"><code>plm.1f &lt;- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.2f &lt;- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + income, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.3f &lt;- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + literate, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.4f &lt;- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + smokeTobacco, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.5f &lt;- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + ownToilet, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.6f &lt;- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + electricity, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.7f &lt;- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + seenDoctor, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+plm.8f &lt;- plm(data=dfNoRoad, mbNonComDisease ~ lnDistToPvdRd + income + smokeTobacco, index = c(&quot;id&quot;, &quot;year&quot;), model=&quot;within&quot;)
+
+
+r.se.1 &lt;- sqrt(diag(vcovHC(plm.1f, type = &quot;HC1&quot;)))
+r.se.2 &lt;- sqrt(diag(vcovHC(plm.2f, type = &quot;HC1&quot;)))
+r.se.3 &lt;- sqrt(diag(vcovHC(plm.3f, type = &quot;HC1&quot;)))
+r.se.4 &lt;- sqrt(diag(vcovHC(plm.4f, type = &quot;HC1&quot;)))
+r.se.5 &lt;- sqrt(diag(vcovHC(plm.5f, type = &quot;HC1&quot;)))
+r.se.6 &lt;- sqrt(diag(vcovHC(plm.6f, type = &quot;HC1&quot;)))
+r.se.7 &lt;- sqrt(diag(vcovHC(plm.7f, type = &quot;HC1&quot;)))
+r.se.8 &lt;- sqrt(diag(vcovHC(plm.8f, type = &quot;HC1&quot;)))
+
+stargazer(plm.1f, plm.2f, plm.3f, plm.4f, plm.5f, plm.6f, plm.7f, plm.8f, se=list(r.se.1, r.se.2, r.se.3, r.se.4, r.se.5, r.se.6, r.se.7, r.se.8), title=&quot;Road Paved and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects&quot;, type=&quot;text&quot;, omit.stat = c(&quot;f&quot;), header=FALSE)</code></pre>
+<pre><code>## 
+## Road Paved and Incidence of Non-Communicable Disease: OLS with Village and Time-Fixed Effects
+## =============================================================================
+##                                     Dependent variable:                      
+##               ---------------------------------------------------------------
+##                                       mbNonComDisease                        
+##                 (1)     (2)     (3)     (4)     (5)     (6)     (7)     (8)  
+## -----------------------------------------------------------------------------
+## lnDistToPvdRd -0.068  -0.067  -0.048  -0.050  -0.059  -0.063  -0.058  -0.058 
+##               (0.047) (0.047) (0.042) (0.045) (0.049) (0.047) (0.042) (0.046)
+##                                                                              
+## income                 0.150                                           0.102 
+##                       (0.097)                                         (0.133)
+##                                                                              
+## literate                       0.570                                         
+##                               (0.437)                                        
+##                                                                              
+## smokeTobacco                           0.063                           0.031 
+##                                       (0.059)                         (0.082)
+##                                                                              
+## ownToilet                                      0.002                         
+##                                               (0.002)                        
+##                                                                              
+## electricity                                            0.002                 
+##                                                       (0.001)                
+##                                                                              
+## seenDoctor                                                    -0.003         
+##                                                               (0.006)        
+##                                                                              
+## -----------------------------------------------------------------------------
+## Observations    599     599     599     599     599     599     599     599  
+## R2             0.009   0.025   0.019   0.023   0.017   0.016   0.013   0.027 
+## Adjusted R2   -4.645  -4.604  -4.642  -4.617  -4.651  -4.656  -4.673  -4.649 
+## =============================================================================
+## Note:                                             *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
 </div>
 <div id="stdhiv" class="section level2">
 <h2>STD/HIV</h2>

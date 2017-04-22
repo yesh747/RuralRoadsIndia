@@ -565,6 +565,8 @@ df2012 <- merge(df2012, VilInd2012, by="id")
 #7. Convert probablities to percentages
 df2005$electricity <- df2005$electricity*100
 df2012$electricity <- df2012$electricity*100
+df2005$seenDoctor <- df2005$seenDoctor*100
+df2012$seenDoctor <- df2012$seenDoctor*100
 
 ## clean workspace
 rm(HH2005Controls, HH2012Controls, VilInd2005, VilInd2012)
