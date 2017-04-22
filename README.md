@@ -9,7 +9,7 @@ Raw IHDS data file sizes was too large to be contained in this library.
 
 
 ## Data Analysis
-The Data_Analysis_3.Rmd conducts prelimary graphical and regression analysis on the cleaned IHDS data. Earlier data analysis files can be found in the "old/data_analysis" directory. These may be messy as they were used in the data exploration phase.
+The Data_Analysis.Rmd conducts graphical and regression analysis on the cleaned IHDS data. Earlier data analysis files can be found in the "old/data_analysis" directory. These may be messy as they were used in the data exploration phase.
 
-## Data Analysis Final and Thesis Paper
-The final data analysis (regressions, graphs, summary statistics) can be found directly in the "chillakuru_thesis_draft.Rmd". The analysis occurs inline with the text of the paper using the cleaned data files. The Thesis Paper itself, "chillakuru_thesis_draft.pdf", is outputted from the .Rmd file.
+## Final Thesis Paper
+The final data analysis (regressions, graphs, summary statistics) can be found directly in the "chillakuru_thesis_final.Rmd". The analysis occurs inline with the text of the paper using the cleaned data files. The Thesis Paper itself, "chillakuru_thesis_draft.pdf", is outputted from the .Rmd file.
