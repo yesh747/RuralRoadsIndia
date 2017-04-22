@@ -545,18 +545,17 @@ Data cleaning, data analysis and creating the paper itself was done using R Mark
 
 ## R Package References
 
-\noindent [1] Achim Zeileis. 2004. "Econometric Computing with HC and HAC Covariance Matrix Estimators." Journal of Statistical Software, 11(10), 1-17. <http://www.jstatsoft.org/v11/i10/>.
+\noindent [1] Croissant, Yves, and Giovanni Millo. 2008. "Panel Data Econometrics in R: The plm Package." Journal of Statistical Software, 27(2). <http://www.jstatsoft.org/v27/i02/>.
 
-\noindent [2] Croissant, Yves, and Giovanni Millo. 2008. "Panel Data Econometrics in R: The plm Package." Journal of Statistical Software, 27(2). <http://www.jstatsoft.org/v27/i02/>.
-
-\noindent [3] Hadley, Wickham, and Romain Francois. 2016. "dplyr: A Grammar of Data Manipulation." R package version 5.0. <http://CRAN.R-project.org/package=dplyr>.
+\noindent [2] Hadley, Wickham, and Romain Francois. 2016. "dplyr: A Grammar of Data Manipulation." R package version 5.0. <http://CRAN.R-project.org/package=dplyr>.
 &nbsp;
 
-\noindent [4] Hadley, Wickham, and Winston Chang. 2016. "ggplot2: Elegant Graphics for Data Analysis." Springer-Verlag New York, 2009. R package version 5.2. <http://CRAN.R-project.org/package=ggplot2>.
+\noindent [3] Hadley, Wickham, and Winston Chang. 2016. "ggplot2: Elegant Graphics for Data Analysis." Springer-Verlag New York, 2009. R package version 5.2. <http://CRAN.R-project.org/package=ggplot2>.
 &nbsp;
 
-\noindent [5] Hlavac, Marek. 2015. "stargazer: Well-Formatted Regression and Summary Statistics Tables." R package version 5.2. <http://CRAN.R-project.org/package=stargazer>.
+\noindent [4] Hlavac, Marek. 2015. "stargazer: Well-Formatted Regression and Summary Statistics Tables." R package version 5.2. <http://CRAN.R-project.org/package=stargazer>.
 
+\noindent [5] Zeileis, Achim. 2004. "Econometric Computing with HC and HAC Covariance Matrix Estimators." Journal of Statistical Software, 11(10), 1-17. <http://www.jstatsoft.org/v11/i10/>.
 
 
 
