@@ -14,6 +14,20 @@ header-includes:
   - \setlength{\parindent}{2em}
 ---
 
+# TODO:
+ * Add mechanisms:
+    * cost of travel -- DONE
+    * literate
+    * attendedSchool
+    * ownToilet
+    * PctPipedWater
+    * ImmuniCamps
+    * Add To:
+      * Conclusion
+      * Introduction -- DONE
+      * Abstract
+
+
 # Requests from Professor Sinclair
   
   * Professor requested to use the smallest sample for all analysis as certain controls lowered the sample size during regression analysis. This was addressed by dropping all observations with missing values for all regressor terms. This dropped the sample size from 2800 observations to 2545 obersvations (`r round(100*(2800-2545)/2800,2)`% drop in sample size).

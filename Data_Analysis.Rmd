@@ -376,7 +376,53 @@ stargazer(df2012Vars, title="2012 Summary Statistics: Household and Village Char
 
 
 
+# Mechanisms
+```{r mechansims, include=FALSE, results='asis'}
 
+plm.m1 <- plm(data=df, mbTravelExpenses ~ roadPaved, index=c("id","year"))
+plm.m2 <- plm(data=df, mbTravelExpenses ~ roadPaved + income + electricity + literate + ownToilet + PctPipedWater + ImmuniCamps + Treat.SameVil+ healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index=c("id","year"))
+plm.m3 <- plm(data=df, literate ~ roadPaved, index=c("id","year"))
+plm.m4 <- plm(data=df, literate ~ roadPaved + income + electricity + ownToilet + PctPipedWater + ImmuniCamps + Treat.SameVil+ healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index=c("id","year"))
+plm.m5 <- plm(data=df, attendedSchool ~ roadPaved, index=c("id","year"))
+plm.m6 <- plm(data=df, attendedSchool ~ roadPaved + income + electricity + ownToilet + PctPipedWater + ImmuniCamps + Treat.SameVil+ healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index=c("id","year"))
+
+r.se.m1 <- sqrt(diag(vcovHC(plm.m1, type = "HC1")))
+r.se.m2 <- sqrt(diag(vcovHC(plm.m2, type = "HC1")))
+r.se.m3 <- sqrt(diag(vcovHC(plm.m3, type = "HC1")))
+r.se.m4 <- sqrt(diag(vcovHC(plm.m4, type = "HC1")))
+r.se.m5 <- sqrt(diag(vcovHC(plm.m5, type = "HC1")))
+r.se.m6 <- sqrt(diag(vcovHC(plm.m6, type = "HC1")))
+
+plm.m7 <- plm(data=df, ownToilet ~ roadPaved, index=c("id","year"))
+plm.m8 <- plm(data=df, ownToilet ~ roadPaved + income + electricity + literate + PctPipedWater + ImmuniCamps + Treat.SameVil+ healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index=c("id","year"))
+plm.m9 <- plm(data=df, PctPipedWater ~ roadPaved, index=c("id","year"))
+plm.m10 <- plm(data=df, PctPipedWater ~ roadPaved + income + electricity + ownToilet + literate + ImmuniCamps + Treat.SameVil+ healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index=c("id","year"))
+plm.m11 <- plm(data=df, ImmuniCamps ~ roadPaved, index=c("id","year"))
+plm.m12 <- plm(data=df, ImmuniCamps ~ roadPaved + income + electricity + ownToilet + PctPipedWater + literate + Treat.SameVil+ healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index=c("id","year"))
+
+r.se.m7 <- sqrt(diag(vcovHC(plm.m7, type = "HC1")))
+r.se.m8 <- sqrt(diag(vcovHC(plm.m8, type = "HC1")))
+r.se.m9 <- sqrt(diag(vcovHC(plm.m9, type = "HC1")))
+r.se.m10 <- sqrt(diag(vcovHC(plm.m10, type = "HC1")))
+r.se.m11 <- sqrt(diag(vcovHC(plm.m11, type = "HC1")))
+r.se.m12 <- sqrt(diag(vcovHC(plm.m12, type = "HC1")))
+
+
+# Adjusted r^2 is much lower for distanceToPavedRoad, so roadPaved is used instead because it is a better fit.
+#
+# plm.m1 <- plm(data=dfNoRoad, mbTravelExpenses ~ distanceToPavedRoad, index=c("id","year"))
+# plm.m2 <- plm(data=dfNoRoad, mbTravelExpenses ~ distanceToPavedRoad + income + electricity + literate + ownToilet + PctPipedWater + ImmuniCamps + Treat.SameVil+ healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index=c("id","year"))
+# plm.m3 <- plm(data=dfNoRoad, literate ~ distanceToPavedRoad, index=c("id","year"))
+# plm.m4 <- plm(data=dfNoRoad, literate ~ distanceToPavedRoad + income + electricity + ownToilet + PctPipedWater + ImmuniCamps + Treat.SameVil+ healthSubCntr + primaryHealthCntr + commHealthCntr + pvtClinic + pvtHospital, index=c("id","year"))
+# 
+# r.se.m1 <- sqrt(diag(vcovHC(plm.m1, type = "HC1")))
+# r.se.m2 <- sqrt(diag(vcovHC(plm.m2, type = "HC1")))
+# r.se.m3 <- sqrt(diag(vcovHC(plm.m3, type = "HC1")))
+# r.se.m4 <- sqrt(diag(vcovHC(plm.m4, type = "HC1")))
+
+stargazer(plm.m1, plm.m2, plm.m3, plm.m4, plm.m5, plm.m6, se=list(r.se.m1, r.se.m2, r.se.m3, r.se.m4, r.se.m5, r.se.m6), title = "Road Paved and Travel Cost/Education Mechanisms: OLS with Village and Time-Fixed Effects", header=FALSE, omit.stat=c("f"), type="text")
+stargazer(plm.m7, plm.m8, plm.m9, plm.m10, plm.m11, plm.m12, se=list(r.se.m7, r.se.m8, r.se.m9, r.se.m10, r.se.m11, r.se.m12), title = "Road Paved and Hygiene/Health Mechanisms: OLS with Village and Time-Fixed Effects", header=FALSE, omit.stat=c("f"), type="text")
+```
 
 
 
