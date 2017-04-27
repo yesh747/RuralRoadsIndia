@@ -14,21 +14,7 @@ header-includes:
   - \setlength{\parindent}{2em}
 ---
 
-# TODO:
- * Add mechanisms:
-    * cost of travel -- DONE
-    * literate
-    * attendedSchool
-    * ownToilet
-    * PctPipedWater
-    * ImmuniCamps
-    * Add To:
-      * Conclusion
-      * Introduction -- DONE
-      * Abstract
-
-
-# Requests from Professor Sinclair
+# 1. Requests from Professor Sinclair
   
   * Professor requested to use the smallest sample for all analysis as certain controls lowered the sample size during regression analysis. This was addressed by dropping all observations with missing values for all regressor terms. This dropped the sample size from 2800 observations to 2545 obersvations (`r round(100*(2800-2545)/2800,2)`% drop in sample size).
   * Professor commented why so many obersvations were missing for Equations (2) regressions (599 observations used in Equation (1) regressions compared to 2585 used in Equation (2) regressions). This is because Equation (2) only examines how change in distance to paved affects health outcomes, and so the analysis includes only villages with a paved road (599 villages). This is stated Section III (Model) of the paper, and this approach for analysis was agreed upon with the Professor for ease of interpreability and for isolating the two effects (distance to road and if a road is present or not).
@@ -37,7 +23,7 @@ header-includes:
   * Professor suggested to include base model (univariate without panel effects) regressions. These are now included in the analysis in the Results Section.
 
 
-# Requests from Jessica Goldenring (referee)
+# 2. Requests from Jessica Goldenring (referee)
 
   * Minor grammatical, spelling, and formatting changes were made.
   
@@ -63,7 +49,7 @@ header-includes:
   
 ## Results
   
-  * Referee suggested rewording "percentage point increase" increase to "point increase in percent" stating that I was not performing a logit/probit analysis. However, "percentage point increase" and "point increase in percent" are referring to the same thing. "Percent increase" would be the appropriate terminology for a logit/probit model: <https://www.reed.edu/academic_support/pdfs/qskills/percent.pdf>.
+  * Referee suggested rewording "percentage point increase in percent" increase to "point increase in percent" stating that I was not performing a logit/probit analysis. Upon consultation with the Professor, this was reworded to "percentage point increase in the share of villagers . . ."
   
   
 ## Robustness Checks Section
@@ -77,6 +63,13 @@ header-includes:
 ## Conclusion
   * As suggested by referee, discussion about null findings and their reltinoaship to the Bell and van Dillen (2014) and Djemai (2011) papers was moved to the Robustness checks.
 
+
+# 3. Other Additions by Yeshwant (author)
+
+  * I decided to add a new section after the Robustness Checks section called "Mechanisms" (Section VI). Using OLS regression models with village and time-fixed effects, I analyze three potential mechanisms through which roads could affect health outcomes. Road may:
+    1. Increase/Decrease cost of travel to health center. An increase would make treatment more prohibitive and would worsen health outcomes.
+    2. Improve education. Better educated individuals could be more aware of diseases.
+    3. Improve sanitation and health environment. Better sewage systems and plumbing as well as more immunization campaigns may improve health outcomes.
     
     
     
